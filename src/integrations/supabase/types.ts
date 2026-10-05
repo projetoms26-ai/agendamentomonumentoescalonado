@@ -46,6 +46,7 @@ export type Database = {
           slot_time: string
           status: Database["public"]["Enums"]["booking_status"]
           updated_at: string
+          visit_type: string
           whatsapp: string
         }
         Insert: {
@@ -61,6 +62,7 @@ export type Database = {
           slot_time: string
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
+          visit_type?: string
           whatsapp: string
         }
         Update: {
@@ -76,6 +78,7 @@ export type Database = {
           slot_time?: string
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
+          visit_type?: string
           whatsapp?: string
         }
         Relationships: []
@@ -161,21 +164,38 @@ export type Database = {
     }
     Functions: {
       claim_first_admin: { Args: never; Returns: boolean }
-      create_booking: {
-        Args: {
-          _date: string
-          _email: string
-          _name: string
-          _time: string
-          _whatsapp: string
-        }
-        Returns: {
-          booking_date: string
-          code: string
-          full_name: string
-          slot_time: string
-        }[]
-      }
+      create_booking:
+        | {
+            Args: {
+              _date: string
+              _email: string
+              _name: string
+              _time: string
+              _whatsapp: string
+            }
+            Returns: {
+              booking_date: string
+              code: string
+              full_name: string
+              slot_time: string
+            }[]
+          }
+        | {
+            Args: {
+              _date: string
+              _email: string
+              _name: string
+              _time: string
+              _visit_type: string
+              _whatsapp: string
+            }
+            Returns: {
+              booking_date: string
+              code: string
+              full_name: string
+              slot_time: string
+            }[]
+          }
       gen_booking_code: { Args: never; Returns: string }
       get_availability: {
         Args: { _from: string; _to: string }
