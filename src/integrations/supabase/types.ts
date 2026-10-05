@@ -176,6 +176,7 @@ export type Database = {
           slot_time: string
         }[]
       }
+      gen_booking_code: { Args: never; Returns: string }
       get_availability: {
         Args: { _from: string; _to: string }
         Returns: {
