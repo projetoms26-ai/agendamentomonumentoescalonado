@@ -37,7 +37,7 @@ function BookingPage() {
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", whatsapp: "", email: "" });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<{ name?: string; whatsapp?: string; email?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<{ code: string } | null>(null);
@@ -77,7 +77,7 @@ function BookingPage() {
     if (!r.success) {
       const e: Record<string, string> = {};
       r.error.issues.forEach((i) => (e[String(i.path[0])] = i.message));
-      setErrors(e);
+      setErrors(e as typeof errors);
       return;
     }
     setErrors({});
@@ -262,7 +262,7 @@ function BookingPage() {
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string | undefined; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-sm font-semibold">{label}</Label>

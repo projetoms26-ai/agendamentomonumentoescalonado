@@ -40,5 +40,5 @@ export const STATUSES: { value: Status; label: string; cls: string }[] = [
   { value: "cancelado", label: "Cancelado", cls: "bg-muted text-muted-foreground border-border" },
   { value: "nao_compareceu", label: "Não compareceu", cls: "bg-destructive/10 text-destructive border-destructive/30" },
 ];
-export const statusInfo = (s: string) => STATUSES.find((x) => x.value === s) ?? STATUSES[0];
+export const statusInfo = (s: string) => STATUSES.find((x) => x.value === s) ?? STATUSES[0]!;
 export const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];

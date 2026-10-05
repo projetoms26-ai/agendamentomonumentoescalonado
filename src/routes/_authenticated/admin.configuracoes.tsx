@@ -33,7 +33,7 @@ function SettingsPage() {
       daily_capacity: s.daily_capacity, slot_capacity: s.slot_capacity, group_size: s.group_size,
       open_weekdays: s.open_weekdays, days_ahead: s.days_ahead, payment_note: s.payment_note.slice(0, 500),
     }).eq("id", 1);
-    if (error) return toast.error("Erro ao salvar");
+    if (error) { toast.error("Erro ao salvar"); return; }
     toast.success("Configurações salvas");
     qc.invalidateQueries({ queryKey: ["settings"] });
   }
@@ -41,13 +41,13 @@ function SettingsPage() {
   async function addSlot() {
     if (!newTime) return;
     const { error } = await supabase.from("time_slots").insert({ start_time: newTime });
-    if (error) return toast.error("Horário já existe ou é inválido");
+    if (error) { toast.error("Horário já existe ou é inválido"); return; }
     setNewTime(""); refreshSlots();
   }
   async function blockDate() {
     if (!blockDay) return;
     const { error } = await supabase.from("blocked_dates").insert({ day: blockDay, reason: blockReason.slice(0, 200) || null });
-    if (error) return toast.error("Data já bloqueada");
+    if (error) { toast.error("Data já bloqueada"); return; }
     setBlockDay(""); setBlockReason(""); qc.invalidateQueries({ queryKey: ["blocked"] });
   }
 
