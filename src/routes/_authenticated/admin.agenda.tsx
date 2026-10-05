@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/admin/StatusSelect";
 import { addDays, fmtDate, hhmm, maskPhone, todayISO } from "@/lib/booking";
-import { useDayBookings } from "./admin.index";
+import { useDayBookings } from "@/lib/admin-queries";
 
 export const Route = createFileRoute("/_authenticated/admin/agenda")({
   component: Agenda,

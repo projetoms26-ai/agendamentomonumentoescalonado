@@ -6,22 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusSelect } from "@/components/admin/StatusSelect";
+import { useDayBookings } from "@/lib/admin-queries";
 import { fmtDate, fmtLong, hhmm, maskPhone, todayISO } from "@/lib/booking";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: Dashboard,
 });
-
-export function useDayBookings(date: string) {
-  return useQuery({
-    queryKey: ["bookings", date],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("bookings").select("*").eq("booking_date", date).order("slot_time").order("created_at");
-      if (error) throw error;
-      return data;
-    },
-  });
-}
 
 function Dashboard() {
   const [date, setDate] = useState(todayISO());
