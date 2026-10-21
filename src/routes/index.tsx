@@ -154,13 +154,13 @@ function BookingPage() {
             <section>
               <h2 className="text-xl font-semibold">1. Cadastro</h2>
               <form className="mt-5 space-y-4" onSubmit={(e) => { e.preventDefault(); submitForm(); }}>
-                <Field label="Nome completo" error={errors.name}>
+                <Field label="Nome completo" error={errors["name"]}>
                   <Input className="h-12 text-base" autoComplete="name" maxLength={120} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                 </Field>
-                <Field label="Celular (WhatsApp)" error={errors.whatsapp}>
+                <Field label="Celular (WhatsApp)" error={errors["whatsapp"]}>
                   <Input className="h-12 text-base" inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: maskPhone(e.target.value) })} />
                 </Field>
-                <Field label="E-mail (opcional)" error={errors.email}>
+                <Field label="E-mail (opcional)" error={errors["email"]}>
                   <Input className="h-12 text-base" type="email" autoComplete="email" maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </Field>
                 <p className="text-xs text-muted-foreground">Seu ciclo é definido pela equipe após a confirmação do cadastro.</p>
