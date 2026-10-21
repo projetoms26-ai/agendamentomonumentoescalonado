@@ -32,13 +32,35 @@ export function maskPhone(v: string) {
   return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
 }
 
-export type Status = "agendado" | "chegou" | "atendido" | "cancelado" | "nao_compareceu";
-export const STATUSES: { value: Status; label: string; cls: string }[] = [
+export type Status = "agendado" | "chegou" | "concluiu" | "faltou" | "cancelado" | "reagendou" | "repetir" | "passou" | "atendido" | "nao_compareceu";
+// adminOnly = ações marcadas com * (só o administrador pode aplicar)
+export const STATUSES: { value: Status; label: string; cls: string; adminOnly?: boolean }[] = [
   { value: "agendado", label: "Agendado", cls: "bg-info/15 text-info border-info/30" },
   { value: "chegou", label: "Chegou", cls: "bg-warning/20 text-foreground border-warning/50" },
-  { value: "atendido", label: "Atendido", cls: "bg-success/15 text-success border-success/30" },
-  { value: "cancelado", label: "Cancelado", cls: "bg-muted text-muted-foreground border-border" },
-  { value: "nao_compareceu", label: "Não compareceu", cls: "bg-destructive/10 text-destructive border-destructive/30" },
+  { value: "concluiu", label: "Concluiu", cls: "bg-success/15 text-success border-success/30", adminOnly: true },
+  { value: "faltou", label: "Faltou", cls: "bg-destructive/10 text-destructive border-destructive/30", adminOnly: true },
+  { value: "cancelado", label: "Cancelou", cls: "bg-muted text-muted-foreground border-border" },
+  { value: "reagendou", label: "Reagendou", cls: "bg-muted text-foreground border-border" },
+  { value: "repetir", label: "Repetir", cls: "bg-warning/20 text-foreground border-warning/50", adminOnly: true },
+  { value: "passou", label: "Passou", cls: "bg-success/25 text-success border-success/40", adminOnly: true },
 ];
-export const statusInfo = (s: string) => STATUSES.find((x) => x.value === s) ?? STATUSES[0]!;
+const LEGACY = [
+  { value: "atendido" as Status, label: "Atendido", cls: "bg-success/15 text-success border-success/30" },
+  { value: "nao_compareceu" as Status, label: "Não compareceu", cls: "bg-destructive/10 text-destructive border-destructive/30" },
+];
+export const statusInfo = (s: string) => [...STATUSES, ...LEGACY].find((x) => x.value === s) ?? STATUSES[0]!;
+export const CYCLES = ["i1", "i2", "i3", "P1", "P2", "Aresta"] as const;
+export const PERIODS: Record<string, string> = { integral: "Período integral", manha: "Manhã", tarde: "Tarde" };
+
+/** Regra do Iniciar: 3 ciclos. Dia inteiro = 1 data integral (i1,i2,i3); Duas tardes = 2 datas com tarde (i1,i2 | i3). */
+export type IniciarFormat = "dia_inteiro" | "duas_tardes";
+export const requiredDates = (f: IniciarFormat) => (f === "dia_inteiro" ? 1 : 2);
+export function planCycles(f: IniciarFormat, dates: string[]): { date: string; cycle: string }[] {
+  const ds = [...dates].sort();
+  if (f === "dia_inteiro") return ds.length === 1 ? ["i1", "i2", "i3"].map((c) => ({ date: ds[0]!, cycle: c })) : [];
+  return ds.length === 2 ? [{ date: ds[0]!, cycle: "i1" }, { date: ds[0]!, cycle: "i2" }, { date: ds[1]!, cycle: "i3" }] : [];
+}
+export function dayFitsFormat(period: string, f: IniciarFormat) {
+  return f === "dia_inteiro" ? period === "integral" : period !== "manha";
+}
 export const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
