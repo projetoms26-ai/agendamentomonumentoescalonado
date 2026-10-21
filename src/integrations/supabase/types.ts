@@ -35,10 +35,15 @@ export type Database = {
       bookings: {
         Row: {
           booking_date: string
+          category: string | null
           code: string
           created_at: string
+          customer_id: string | null
+          cycle: string | null
           email: string | null
+          format: string | null
           full_name: string
+          group_id: string | null
           id: string
           metadata: Json
           party_size: number
@@ -51,10 +56,15 @@ export type Database = {
         }
         Insert: {
           booking_date: string
+          category?: string | null
           code: string
           created_at?: string
+          customer_id?: string | null
+          cycle?: string | null
           email?: string | null
+          format?: string | null
           full_name: string
+          group_id?: string | null
           id?: string
           metadata?: Json
           party_size?: number
@@ -67,10 +77,15 @@ export type Database = {
         }
         Update: {
           booking_date?: string
+          category?: string | null
           code?: string
           created_at?: string
+          customer_id?: string | null
+          cycle?: string | null
           email?: string | null
+          format?: string | null
           full_name?: string
+          group_id?: string | null
           id?: string
           metadata?: Json
           party_size?: number
@@ -80,6 +95,72 @@ export type Database = {
           updated_at?: string
           visit_type?: string
           whatsapp?: string
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          confirmed: boolean
+          created_at: string
+          cycle: string | null
+          email: string | null
+          full_name: string
+          id: string
+          last_activity_date: string | null
+          whatsapp: string
+        }
+        Insert: {
+          confirmed?: boolean
+          created_at?: string
+          cycle?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          last_activity_date?: string | null
+          whatsapp: string
+        }
+        Update: {
+          confirmed?: boolean
+          created_at?: string
+          cycle?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          last_activity_date?: string | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      schedule_days: {
+        Row: {
+          created_at: string
+          day: string
+          end_time: string
+          iniciar_capacity: number
+          p1_capacity: number
+          p2_capacity: number
+          period: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          end_time?: string
+          iniciar_capacity?: number
+          p1_capacity?: number
+          p2_capacity?: number
+          period?: string
+          start_time?: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          end_time?: string
+          iniciar_capacity?: number
+          p1_capacity?: number
+          p2_capacity?: number
+          period?: string
+          start_time?: string
         }
         Relationships: []
       }
@@ -163,6 +244,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      book_cycles: {
+        Args: {
+          _category: string
+          _dates: string[]
+          _email: string
+          _format: string
+          _name: string
+          _whatsapp: string
+        }
+        Returns: {
+          booking_date: string
+          code: string
+          cycle: string
+        }[]
+      }
       claim_first_admin: { Args: never; Returns: boolean }
       create_booking:
         | {
@@ -196,6 +292,10 @@ export type Database = {
               slot_time: string
             }[]
           }
+      customer_action: {
+        Args: { _action: string; _code: string; _whatsapp: string }
+        Returns: string
+      }
       gen_booking_code: { Args: never; Returns: string }
       get_availability: {
         Args: { _from: string; _to: string }
@@ -215,6 +315,18 @@ export type Database = {
           slot_time: string
         }[]
       }
+      get_schedule: {
+        Args: { _from: string; _to: string }
+        Returns: {
+          day: string
+          end_time: string
+          iniciar_left: number
+          p1_left: number
+          p2_left: number
+          period: string
+          start_time: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -222,6 +334,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      lookup_profile: { Args: { _whatsapp: string }; Returns: string }
     }
     Enums: {
       app_role: "admin"
@@ -231,6 +344,11 @@ export type Database = {
         | "atendido"
         | "cancelado"
         | "nao_compareceu"
+        | "concluiu"
+        | "faltou"
+        | "reagendou"
+        | "repetir"
+        | "passou"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -365,6 +483,11 @@ export const Constants = {
         "atendido",
         "cancelado",
         "nao_compareceu",
+        "concluiu",
+        "faltou",
+        "reagendou",
+        "repetir",
+        "passou",
       ],
     },
   },
