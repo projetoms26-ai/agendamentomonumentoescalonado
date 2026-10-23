@@ -106,10 +106,11 @@ function BookingPage() {
   }
 
   async function confirm() {
+    if (!ready || (isIniciar && !format)) return;
     setBusy(true); setSubmitError(null);
     const { data, error } = await supabase.rpc("book_cycles", {
       _name: form.name, _whatsapp: form.whatsapp, _email: form.email, _category: category,
-      _format: isIniciar ? format! : "", _dates: dates,
+      _format: isIniciar ? (format ?? "") : "", _dates: dates,
     });
     setBusy(false);
     if (error || !data?.length) { setSubmitError(error?.message ?? "Não foi possível concluir."); schedule.refetch(); return; }
@@ -211,14 +212,15 @@ function BookingPage() {
                 </div>
               )}
               {schedule.isLoading ? <Loader2 className="mx-auto my-10 size-6 animate-spin text-muted-foreground" /> :
-                !available.length ? <p className="mt-6 text-muted-foreground">Nenhuma data disponível no momento.</p> : (
+                schedule.isError ? <div className="mt-6 space-y-3"><p role="alert" className="text-destructive">Não foi possível carregar as datas.</p><Button variant="outline" onClick={() => schedule.refetch()}>Tentar novamente</Button></div> :
+                !available.length ? <p className="mt-6 text-muted-foreground">Ainda não há datas publicadas para este formato.</p> : (
                 <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                   {available.map((d) => {
                     const left = leftOf(d);
                     const sel = dates.includes(d.day);
                     return (
-                      <button key={d.day} disabled={left <= 0 && !sel} onClick={() => toggleDate(d.day)} aria-pressed={sel}
-                        className={`relative flex flex-col items-center rounded-xl border-2 px-2 py-3 transition disabled:cursor-not-allowed disabled:opacity-40 ${sel ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:border-primary"}`}>
+                      <Button key={d.day} variant="outline" disabled={left <= 0 && !sel} onClick={() => toggleDate(d.day)} aria-pressed={sel}
+                        className={`relative flex h-auto flex-col items-center gap-0 whitespace-normal rounded-lg border-2 px-2 py-3 transition disabled:cursor-not-allowed disabled:opacity-40 ${sel ? "border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : "bg-background hover:border-primary"}`}>
                         {sel && <Check className="absolute right-2 top-2 size-4" />}
                         <span className="text-xs font-medium uppercase opacity-70">{weekdayShort(d.day)}</span>
                         <span className="font-display text-2xl font-semibold">{dayNum(d.day)}</span>
@@ -227,7 +229,7 @@ function BookingPage() {
                         <span className={`mt-1 text-[11px] font-semibold ${sel ? "" : left <= 0 ? "text-destructive" : left <= 3 ? "text-warning" : "text-success"}`}>
                           {left <= 0 ? "Esgotado" : `${left} ${left === 1 ? "vaga" : "vagas"}`}
                         </span>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>

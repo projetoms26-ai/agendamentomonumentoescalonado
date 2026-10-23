@@ -10,8 +10,17 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { fmtDate, hhmm, WEEKDAYS } from "@/lib/booking";
+import { ScheduleDays } from "@/components/admin/ScheduleDays";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes")({
+  head: () => ({ meta: [
+    { title: "Agenda e configurações — App MME" },
+    { name: "description", content: "Gestão administrativa de datas, turnos e vagas dos ciclos do App MME." },
+    { property: "og:title", content: "Agenda e configurações — App MME" },
+    { property: "og:description", content: "Gestão de datas e vagas dos ciclos Iniciar, P1 e P2." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: SettingsPage,
 });
 
@@ -60,6 +69,8 @@ function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <h1 className="text-2xl font-semibold sm:text-3xl">Configurações</h1>
+
+      <ScheduleDays />
 
       <Card title="Capacidade e dias">
         <div className="grid gap-4 sm:grid-cols-2">
