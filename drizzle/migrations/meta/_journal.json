@@ -29,6 +29,13 @@
       "when": 1792594913188,
       "tag": "0003_mme_cycles_schedule",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792756367886,
+      "tag": "0004_grant_schedule_days_access",
+      "breakpoints": true
     }
   ]
 }
