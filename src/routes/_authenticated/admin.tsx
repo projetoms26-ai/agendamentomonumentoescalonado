@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, LayoutDashboard, Loader2, LogOut, Settings } from "lucide-react";
+import { CalendarDays, LayoutDashboard, Loader2, LogOut, Settings, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Brand } from "@/components/Brand";
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const NAV = [
   { to: "/admin", label: "Painel", icon: LayoutDashboard, exact: true },
   { to: "/admin/agenda", label: "Agenda do dia", icon: CalendarDays, exact: false },
+  { to: "/admin/cadastros", label: "Cadastros", icon: Users, exact: false },
   { to: "/admin/configuracoes", label: "Configurações", icon: Settings, exact: false },
 ] as const;
 

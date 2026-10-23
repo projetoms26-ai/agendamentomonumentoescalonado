@@ -40,10 +40,18 @@ function Agenda() {
                       <div className="text-lg font-semibold">{b.full_name}</div>
                       <span className="font-mono text-sm text-muted-foreground">{b.code}</span>
                     </div>
+                    {(b.category || b.cycle) && (
+                      <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
+                        {b.category && <span className="rounded-full border bg-muted px-2 py-0.5 font-medium">{b.category === "iniciar" ? "Iniciar" : b.category}</span>}
+                        {b.cycle && <span className="rounded-full border bg-info/15 px-2 py-0.5 font-medium text-info">Ciclo {b.cycle}</span>}
+                        {b.format && <span className="rounded-full border px-2 py-0.5 text-muted-foreground">{b.format === "dia_inteiro" ? "Dia inteiro" : b.format === "duas_tardes" ? "Duas tardes" : b.format}</span>}
+                      </div>
+                    )}
                     <a href={`https://wa.me/55${b.whatsapp}`} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
                       <Phone className="size-3.5" /> {maskPhone(b.whatsapp)}
                     </a>
-                    <div className="mt-3"><QuickStatus id={b.id} value={b.status} /></div>
+                    <p className="mt-3 text-xs font-medium text-muted-foreground">Gerenciar atividade (Concluiu, Faltou, Repetir e Passou são só do administrador; Passou avança o ciclo)</p>
+                    <div className="mt-1.5"><QuickStatus id={b.id} value={b.status} /></div>
                   </div>
                 ))}
               </div>
