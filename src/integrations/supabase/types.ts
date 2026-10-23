@@ -244,21 +244,38 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      book_cycles: {
-        Args: {
-          _category: string
-          _dates: string[]
-          _email: string
-          _format: string
-          _name: string
-          _whatsapp: string
-        }
-        Returns: {
-          booking_date: string
-          code: string
-          cycle: string
-        }[]
-      }
+      book_cycles:
+        | {
+            Args: {
+              _category: string
+              _dates: string[]
+              _email: string
+              _format: string
+              _name: string
+              _whatsapp: string
+            }
+            Returns: {
+              booking_date: string
+              code: string
+              cycle: string
+            }[]
+          }
+        | {
+            Args: {
+              _category: string
+              _dates: string[]
+              _email: string
+              _format: string
+              _name: string
+              _party: number
+              _whatsapp: string
+            }
+            Returns: {
+              booking_date: string
+              code: string
+              cycle: string
+            }[]
+          }
       claim_first_admin: { Args: never; Returns: boolean }
       create_booking:
         | {
