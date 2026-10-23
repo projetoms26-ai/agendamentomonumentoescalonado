@@ -57,6 +57,13 @@
       "when": 1792760531177,
       "tag": "0007_format_tarde_integral",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792761060323,
+      "tag": "0008_aresta_category_free_choice",
+      "breakpoints": true
     }
   ]
 }

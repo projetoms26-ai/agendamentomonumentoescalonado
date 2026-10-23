@@ -133,6 +133,7 @@ export type Database = {
       }
       schedule_days: {
         Row: {
+          aresta_capacity: number
           created_at: string
           day: string
           end_time: string
@@ -143,6 +144,7 @@ export type Database = {
           start_time: string
         }
         Insert: {
+          aresta_capacity?: number
           created_at?: string
           day: string
           end_time?: string
@@ -153,6 +155,7 @@ export type Database = {
           start_time?: string
         }
         Update: {
+          aresta_capacity?: number
           created_at?: string
           day?: string
           end_time?: string
@@ -335,6 +338,7 @@ export type Database = {
       get_schedule: {
         Args: { _from: string; _to: string }
         Returns: {
+          aresta_left: number
           day: string
           end_time: string
           iniciar_left: number

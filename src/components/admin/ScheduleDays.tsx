@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fmtDate, hhmm, PERIODS, todayISO } from "@/lib/booking";
 
-const emptyDay = { day: "", period: "integral", start_time: "08:00", end_time: "18:00", iniciar_capacity: 0, p1_capacity: 0, p2_capacity: 0 };
+const emptyDay = { day: "", period: "integral", start_time: "08:00", end_time: "18:00", iniciar_capacity: 0, p1_capacity: 0, p2_capacity: 0, aresta_capacity: 0 };
 
 export function ScheduleDays() {
   const qc = useQueryClient();
@@ -51,14 +51,14 @@ export function ScheduleDays() {
           <div className="space-y-1.5"><Label htmlFor="schedule-start">Início</Label><Input id="schedule-start" type="time" required value={draft.start_time} onChange={(e) => setDraft({ ...draft, start_time: e.target.value })} /></div>
           <div className="space-y-1.5"><Label htmlFor="schedule-end">Fim</Label><Input id="schedule-end" type="time" required value={draft.end_time} onChange={(e) => setDraft({ ...draft, end_time: e.target.value })} /></div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          {([['iniciar_capacity', 'Vagas Iniciar'], ['p1_capacity', 'Vagas P1'], ['p2_capacity', 'Vagas P2']] as const).map(([key, label]) => <div key={key} className="space-y-1.5"><Label htmlFor={key}>{label}</Label><Input id={key} type="number" required min={0} step={1} value={draft[key]} onChange={(e) => setDraft({ ...draft, [key]: Math.max(0, Math.trunc(Number(e.target.value) || 0)) })} /></div>)}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {([['iniciar_capacity', 'Vagas Iniciar'], ['p1_capacity', 'Vagas P1'], ['p2_capacity', 'Vagas P2'], ['aresta_capacity', 'Vagas Aresta']] as const).map(([key, label]) => <div key={key} className="space-y-1.5"><Label htmlFor={key}>{label}</Label><Input id={key} type="number" required min={0} step={1} value={draft[key]} onChange={(e) => setDraft({ ...draft, [key]: Math.max(0, Math.trunc(Number(e.target.value) || 0)) })} /></div>)}
         </div>
         <div className="flex flex-wrap gap-2"><Button type="submit" disabled={busy}>{busy ? <Loader2 className="animate-spin" /> : <CalendarPlus />} Publicar vagas</Button>{draft.day && <Button type="button" variant="outline" onClick={() => setDraft(emptyDay)}>Limpar</Button>}</div>
       </form>
       {days.isLoading ? <p className="text-sm text-muted-foreground">Carregando datas…</p> : days.isError ? <p role="alert" className="text-sm text-destructive">Não foi possível carregar a agenda.</p> : !days.data?.length ? <p className="text-sm text-muted-foreground">Nenhuma data publicada.</p> : (
         <div className="divide-y">
-          {days.data.map((day) => <div key={day.day} className="flex items-center justify-between gap-3 py-3"><div className="min-w-0"><p className="font-semibold">{fmtDate(day.day)}</p><p className="text-sm text-muted-foreground">{PERIODS[day.period]} · {hhmm(day.start_time)}–{hhmm(day.end_time)}</p><p className="text-sm">Iniciar: {day.iniciar_capacity} · P1: {day.p1_capacity} · P2: {day.p2_capacity}</p></div><Button variant="outline" size="icon" aria-label={`Editar ${fmtDate(day.day)}`} title="Editar data e vagas" onClick={() => setDraft({ day: day.day, period: day.period, start_time: hhmm(day.start_time), end_time: hhmm(day.end_time), iniciar_capacity: day.iniciar_capacity, p1_capacity: day.p1_capacity, p2_capacity: day.p2_capacity })}><Pencil /></Button></div>)}
+          {days.data.map((day) => <div key={day.day} className="flex items-center justify-between gap-3 py-3"><div className="min-w-0"><p className="font-semibold">{fmtDate(day.day)}</p><p className="text-sm text-muted-foreground">{PERIODS[day.period]} · {hhmm(day.start_time)}–{hhmm(day.end_time)}</p><p className="text-sm">Iniciar: {day.iniciar_capacity} · P1: {day.p1_capacity} · P2: {day.p2_capacity} · Aresta: {day.aresta_capacity}</p></div><Button variant="outline" size="icon" aria-label={`Editar ${fmtDate(day.day)}`} title="Editar data e vagas" onClick={() => setDraft({ day: day.day, period: day.period, start_time: hhmm(day.start_time), end_time: hhmm(day.end_time), iniciar_capacity: day.iniciar_capacity, p1_capacity: day.p1_capacity, p2_capacity: day.p2_capacity, aresta_capacity: day.aresta_capacity })}><Pencil /></Button></div>)}
         </div>
       )}
     </section>
