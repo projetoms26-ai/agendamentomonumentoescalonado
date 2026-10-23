@@ -53,7 +53,7 @@ export const CYCLES = ["i1", "i2", "i3", "P1", "P2", "Aresta"] as const;
 export const PERIODS: Record<string, string> = { integral: "Período integral", manha: "Manhã", tarde: "Tarde" };
 
 /** Regra do Iniciar: 3 ciclos. Dia inteiro = 1 data integral (i1,i2,i3); Duas tardes = 2 datas com tarde (i1,i2 | i3). */
-export type IniciarFormat = "dia_inteiro" | "duas_tardes";
+export type IniciarFormat = "dia_inteiro" | "duas_tardes" | "manha_tarde";
 export const requiredDates = (f: IniciarFormat) => (f === "dia_inteiro" ? 1 : 2);
 export function planCycles(f: IniciarFormat, dates: string[]): { date: string; cycle: string }[] {
   const ds = [...dates].sort();
@@ -61,6 +61,14 @@ export function planCycles(f: IniciarFormat, dates: string[]): { date: string; c
   return ds.length === 2 ? [{ date: ds[0]!, cycle: "i1" }, { date: ds[0]!, cycle: "i2" }, { date: ds[1]!, cycle: "i3" }] : [];
 }
 export function dayFitsFormat(period: string, f: IniciarFormat) {
+  if (f === "manha_tarde") return true;
   return f === "dia_inteiro" ? period === "integral" : period !== "manha";
+}
+export const FORMAT_LABEL: Record<IniciarFormat, string> = { dia_inteiro: "Dia inteiro", duas_tardes: "Duas tardes", manha_tarde: "1 manhã + 1 tarde" };
+const hasManha = (p: string) => p !== "tarde";
+const hasTarde = (p: string) => p !== "manha";
+/** 1 manhã + 1 tarde: uma data precisa ter manhã e a outra tarde (integral serve para ambos). */
+export function manhaTardeOk(a: string, b: string) {
+  return (hasManha(a) && hasTarde(b)) || (hasTarde(a) && hasManha(b));
 }
 export const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
