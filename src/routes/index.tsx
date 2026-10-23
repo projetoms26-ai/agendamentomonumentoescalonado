@@ -94,9 +94,9 @@ function BookingPage() {
   function toggleDate(day: string) {
     if (dates.includes(day)) return setDates(dates.filter((d) => d !== day));
     if (need === 1) return setDates([day]);
-    if (format === "manha_tarde" && isIniciar && dates.length === 1) {
+    if (format === "tarde_integral" && isIniciar && dates.length === 1) {
       const per = (x: string) => schedule.data?.find((d) => d.day === x)?.period ?? "";
-      if (!manhaTardeOk(per(dates[0]!), per(day))) { toast.warning("Escolha uma data com manhã e outra com tarde."); return; }
+      if (!manhaTardeOk(per(dates[0]!), per(day))) { toast.warning("Escolha uma data à tarde e outra de período integral."); return; }
     }
     if (dates.length >= need) { toast.warning(`Você já selecionou ${need} datas. Desmarque uma para trocar.`); return; }
     setDates([...dates, day]);
@@ -192,8 +192,8 @@ function BookingPage() {
                   title="Dia inteiro" desc="Os 3 ciclos no mesmo dia (período integral)." />
                 <FormatCard active={format === "duas_tardes"} onClick={() => { setFormat("duas_tardes"); setDates([]); }} icon={<Sunset className="size-6" />}
                   title="Duas tardes" desc="Ciclos distribuídos em 2 tardes (i1+i2 e i3)." />
-                <FormatCard active={format === "manha_tarde"} onClick={() => { setFormat("manha_tarde"); setDates([]); }} icon={<Sun className="size-6" />}
-                  title="1 manhã + 1 tarde" desc="Uma data de manhã e outra à tarde (i1+i2 e i3)." />
+                <FormatCard active={format === "tarde_integral"} onClick={() => { setFormat("tarde_integral"); setDates([]); }} icon={<Sunset className="size-6" />}
+                  title="1 tarde + 1 dia integral" desc="Uma data à tarde e outra de período integral (i1+i2 e i3)." />
               </div>
               <Button size="lg" className="mt-6 w-full" disabled={!format} onClick={() => setStep("dates")}>Escolher datas</Button>
             </section>
@@ -218,7 +218,7 @@ function BookingPage() {
                 <div className="mt-4 rounded-xl border border-accent bg-accent/10 p-4 text-sm">
                   <p className="font-semibold">Como iniciante, você precisa completar exatamente 3 ciclos para concluir.</p>
                   <p className="mt-1 text-muted-foreground">
-                    {format === "dia_inteiro" ? "Dia inteiro: selecione 1 data de período integral." : format === "duas_tardes" ? "Duas tardes: selecione 2 datas com turno da tarde." : "1 manhã + 1 tarde: selecione uma data com manhã e outra com tarde."}
+                    {format === "dia_inteiro" ? "Dia inteiro: selecione 1 data de período integral." : format === "duas_tardes" ? "Duas tardes: selecione 2 datas com turno da tarde." : "1 tarde + 1 dia integral: selecione uma data à tarde e outra de período integral."}
                   </p>
                   <div className="mt-3 flex items-center gap-3">
                     <div className="flex gap-1.5">{[0, 1, 2].map((i) => <div key={i} className={`grid size-7 place-items-center rounded-full text-xs font-bold ${i < cyclesDone ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}`}>{i < cyclesDone ? <Check className="size-4" /> : `i${i + 1}`}</div>)}</div>
