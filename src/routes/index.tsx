@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
 import {
-  addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles,
+  addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles, FORMAT_LABEL, manhaTardeOk,
   requiredDates, todayISO, weekdayShort, type IniciarFormat,
 } from "@/lib/booking";
 
@@ -45,6 +45,7 @@ function BookingPage() {
   const [category, setCategory] = useState<Category>("Iniciar");
   const [format, setFormat] = useState<IniciarFormat | null>(null);
   const [dates, setDates] = useState<string[]>([]);
+  const [party, setParty] = useState(1);
   const [busy, setBusy] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<{ code: string; booking_date: string; cycle: string }[]>([]);
@@ -93,6 +94,10 @@ function BookingPage() {
   function toggleDate(day: string) {
     if (dates.includes(day)) return setDates(dates.filter((d) => d !== day));
     if (need === 1) return setDates([day]);
+    if (format === "manha_tarde" && isIniciar && dates.length === 1) {
+      const per = (x: string) => schedule.data?.find((d) => d.day === x)?.period ?? "";
+      if (!manhaTardeOk(per(dates[0]!), per(day))) { toast.warning("Escolha uma data com manhã e outra com tarde."); return; }
+    }
     if (dates.length >= need) { toast.warning(`Você já selecionou ${need} datas. Desmarque uma para trocar.`); return; }
     setDates([...dates, day]);
   }
@@ -110,7 +115,7 @@ function BookingPage() {
     setBusy(true); setSubmitError(null);
     const { data, error } = await supabase.rpc("book_cycles", {
       _name: form.name, _whatsapp: form.whatsapp, _email: form.email, _category: category,
-      _format: isIniciar ? (format ?? "") : "", _dates: dates,
+      _format: isIniciar ? (format ?? "") : "", _dates: dates, _party: party,
     });
     setBusy(false);
     if (error || !data?.length) { setSubmitError(error?.message ?? "Não foi possível concluir."); schedule.refetch(); return; }
@@ -164,6 +169,14 @@ function BookingPage() {
                 <Field label="E-mail (opcional)" error={errors["email"]}>
                   <Input className="h-12 text-base" type="email" autoComplete="email" maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </Field>
+                <Field label="Quantas pessoas vão (incluindo você)?">
+                  <div className="flex items-center gap-3">
+                    <Button type="button" variant="outline" size="icon" aria-label="Menos pessoas" disabled={party <= 1} onClick={() => setParty(party - 1)}>−</Button>
+                    <span className="w-8 text-center text-lg font-semibold">{party}</span>
+                    <Button type="button" variant="outline" size="icon" aria-label="Mais pessoas" disabled={party >= 10} onClick={() => setParty(party + 1)}>+</Button>
+                    <span className="text-sm text-muted-foreground">{party > 1 ? "Você + familiares, nos mesmos dias" : "Só você"}</span>
+                  </div>
+                </Field>
                 <p className="text-xs text-muted-foreground">Seu ciclo é definido pela equipe após a confirmação do cadastro.</p>
                 <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Continuar</Button>
               </form>
@@ -174,11 +187,13 @@ function BookingPage() {
             <section>
               <h2 className="text-xl font-semibold">2. Iniciar — 3 ciclos</h2>
               <p className="mt-1 text-muted-foreground">Escolha como distribuir seus 3 ciclos (i1, i2, i3):</p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2" role="radiogroup">
+              <div className="mt-5 grid gap-3 sm:grid-cols-3" role="radiogroup">
                 <FormatCard active={format === "dia_inteiro"} onClick={() => { setFormat("dia_inteiro"); setDates([]); }} icon={<Sun className="size-6" />}
                   title="Dia inteiro" desc="Os 3 ciclos no mesmo dia (período integral)." />
                 <FormatCard active={format === "duas_tardes"} onClick={() => { setFormat("duas_tardes"); setDates([]); }} icon={<Sunset className="size-6" />}
                   title="Duas tardes" desc="Ciclos distribuídos em 2 tardes (i1+i2 e i3)." />
+                <FormatCard active={format === "manha_tarde"} onClick={() => { setFormat("manha_tarde"); setDates([]); }} icon={<Sun className="size-6" />}
+                  title="1 manhã + 1 tarde" desc="Uma data de manhã e outra à tarde (i1+i2 e i3)." />
               </div>
               <Button size="lg" className="mt-6 w-full" disabled={!format} onClick={() => setStep("dates")}>Escolher datas</Button>
             </section>
@@ -203,7 +218,7 @@ function BookingPage() {
                 <div className="mt-4 rounded-xl border border-accent bg-accent/10 p-4 text-sm">
                   <p className="font-semibold">Como iniciante, você precisa completar exatamente 3 ciclos para concluir.</p>
                   <p className="mt-1 text-muted-foreground">
-                    {format === "dia_inteiro" ? "Dia inteiro: selecione 1 data de período integral." : "Duas tardes: selecione 2 datas com turno da tarde."}
+                    {format === "dia_inteiro" ? "Dia inteiro: selecione 1 data de período integral." : format === "duas_tardes" ? "Duas tardes: selecione 2 datas com turno da tarde." : "1 manhã + 1 tarde: selecione uma data com manhã e outra com tarde."}
                   </p>
                   <div className="mt-3 flex items-center gap-3">
                     <div className="flex gap-1.5">{[0, 1, 2].map((i) => <div key={i} className={`grid size-7 place-items-center rounded-full text-xs font-bold ${i < cyclesDone ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"}`}>{i < cyclesDone ? <Check className="size-4" /> : `i${i + 1}`}</div>)}</div>
@@ -219,7 +234,7 @@ function BookingPage() {
                     const left = leftOf(d);
                     const sel = dates.includes(d.day);
                     return (
-                      <Button key={d.day} variant="outline" disabled={left <= 0 && !sel} onClick={() => toggleDate(d.day)} aria-pressed={sel}
+                      <Button key={d.day} variant="outline" disabled={left < party && !sel} onClick={() => toggleDate(d.day)} aria-pressed={sel}
                         className={`relative flex h-auto flex-col items-center gap-0 whitespace-normal rounded-lg border-2 px-2 py-3 transition disabled:cursor-not-allowed disabled:opacity-40 ${sel ? "border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : "bg-background hover:border-primary"}`}>
                         {sel && <Check className="absolute right-2 top-2 size-4" />}
                         <span className="text-xs font-medium uppercase opacity-70">{weekdayShort(d.day)}</span>
@@ -227,7 +242,7 @@ function BookingPage() {
                         <span className="text-xs uppercase opacity-70">{monthShort(d.day)}</span>
                         <span className="mt-1 text-[11px] opacity-80">{PERIODS[d.period]} · {hhmm(d.start_time)}–{hhmm(d.end_time)}</span>
                         <span className={`mt-1 text-[11px] font-semibold ${sel ? "" : left <= 0 ? "text-destructive" : left <= 3 ? "text-warning" : "text-success"}`}>
-                          {left <= 0 ? "Esgotado" : `${left} ${left === 1 ? "vaga" : "vagas"}`}
+                          {left < party ? (left <= 0 ? "Esgotado" : `Só ${left} vaga${left === 1 ? "" : "s"}`) : left <= 0 ? "Esgotado" : `${left} ${left === 1 ? "vaga" : "vagas"}`}
                         </span>
                       </Button>
                     );
@@ -251,7 +266,8 @@ function BookingPage() {
               <dl className="mt-5 divide-y rounded-xl border bg-background">
                 <Row k="Nome" v={form.name} />
                 <Row k="Celular" v={form.whatsapp} />
-                <Row k="Categoria" v={isIniciar ? `Iniciar — ${format === "dia_inteiro" ? "Dia inteiro" : "Duas tardes"}` : category} />
+                <Row k="Pessoas" v={String(party)} />
+                <Row k="Categoria" v={isIniciar ? `Iniciar — ${format ? FORMAT_LABEL[format] : ""}` : category} />
                 {plan.map((p, i) => <Row key={i} k={p.cycle} v={<span className="capitalize">{fmtLong(p.date)}</span>} />)}
               </dl>
               <p className="mt-4 flex gap-2 text-sm text-muted-foreground"><Wallet className="size-4 shrink-0" /> {settings.data?.payment_note}</p>
