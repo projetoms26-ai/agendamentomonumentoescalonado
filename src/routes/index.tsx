@@ -34,8 +34,8 @@ const formSchema = z.object({
   email: z.string().trim().max(255).email("E-mail inválido").or(z.literal("")),
 });
 
-type Step = "form" | "format" | "dates" | "review" | "done";
-type Category = "Iniciar" | "P1" | "P2";
+type Step = "form" | "category" | "format" | "dates" | "review" | "done";
+type Category = "Iniciar" | "P1" | "P2" | "Aresta";
 
 function BookingPage() {
   const [step, setStep] = useState<Step>("form");
@@ -71,7 +71,7 @@ function BookingPage() {
     if (isIniciar) return !!format && dayFitsFormat(d.period, format);
     return true;
   });
-  const leftOf = (d: NonNullable<typeof schedule.data>[number]) => (category === "Iniciar" ? d.iniciar_left : category === "P1" ? d.p1_left : d.p2_left);
+  const leftOf = (d: NonNullable<typeof schedule.data>[number]) => (category === "Iniciar" ? d.iniciar_left : category === "P1" ? d.p1_left : category === "P2" ? d.p2_left : d.aresta_left);
 
   async function submitForm() {
     const r = formSchema.safeParse(form);
@@ -86,9 +86,7 @@ function BookingPage() {
     if (error) { toast.error("Não foi possível verificar seu cadastro"); return; }
     const p = data ?? "iniciante";
     setProfile(p); setDates([]); setFormat(null);
-    if (p === "iniciante") { setCategory("Iniciar"); setStep("format"); }
-    else if (p === "Aresta") { setCategory("P1"); setStep("format"); }
-    else { setCategory(p as Category); setStep("dates"); }
+    setCategory(p === "iniciante" ? "Iniciar" : (p as Category)); setStep("category");
   }
 
   function toggleDate(day: string) {
@@ -126,9 +124,9 @@ function BookingPage() {
     setStep("form"); setDates([]); setFormat(null); setResult([]); schedule.refetch();
   }
 
-  const order: Step[] = ["form", "format", "dates", "review"];
-  const stepIdx = step === "done" ? 4 : order.indexOf(step);
-  const back: Partial<Record<Step, Step>> = { format: "form", dates: profile === "P1" || profile === "P2" ? "form" : "format", review: "dates" };
+  const order: Step[] = ["form", "category", "dates", "review"];
+  const stepIdx = step === "done" ? 4 : step === "format" ? 1 : order.indexOf(step);
+  const back: Partial<Record<Step, Step>> = { category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
 
   return (
     <div className="min-h-screen">
@@ -183,7 +181,7 @@ function BookingPage() {
             </section>
           )}
 
-          {step === "format" && profile === "iniciante" && (
+          {step === "format" && (
             <section>
               <h2 className="text-xl font-semibold">2. Iniciar — 3 ciclos</h2>
               <p className="mt-1 text-muted-foreground">Escolha como distribuir seus 3 ciclos (i1, i2, i3):</p>
@@ -199,15 +197,16 @@ function BookingPage() {
             </section>
           )}
 
-          {step === "format" && profile === "Aresta" && (
+          {step === "category" && (
             <section>
-              <h2 className="text-xl font-semibold">2. Escolha a categoria</h2>
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                {(["P1", "P2"] as const).map((c) => (
-                  <FormatCard key={c} active={category === c} onClick={() => setCategory(c)} title={c} desc={`Agendar vaga de ${c}`} />
-                ))}
+              <h2 className="text-xl font-semibold">2. Qual ciclo você vai agendar?</h2>
+              <div className="mt-5 grid grid-cols-2 gap-3" role="radiogroup">
+                <FormatCard active={category === "Iniciar"} onClick={() => setCategory("Iniciar")} title="Iniciar (i1, i2, i3)" desc="Para iniciantes: 3 ciclos." />
+                <FormatCard active={category === "P1"} onClick={() => setCategory("P1")} title="P1" desc="1 ciclo, em 1 data." />
+                <FormatCard active={category === "P2"} onClick={() => setCategory("P2")} title="P2" desc="1 ciclo, em 1 data." />
+                <FormatCard active={category === "Aresta"} onClick={() => setCategory("Aresta")} title="Aresta" desc="Escolha o dia." />
               </div>
-              <Button size="lg" className="mt-6 w-full" onClick={() => { setDates([]); setStep("dates"); }}>Escolher data</Button>
+              <Button size="lg" className="mt-6 w-full" onClick={() => { setDates([]); setFormat(null); setStep(category === "Iniciar" ? "format" : "dates"); }}>Continuar</Button>
             </section>
           )}
 
