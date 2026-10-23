@@ -50,6 +50,13 @@
       "when": 1792760334068,
       "tag": "0006_book_cycles_party_and_manha_tarde",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792760531177,
+      "tag": "0007_format_tarde_integral",
+      "breakpoints": true
     }
   ]
 }

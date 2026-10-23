@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/admin/StatusSelect";
-import { addDays, fmtDate, hhmm, maskPhone, todayISO } from "@/lib/booking";
+import { FORMAT_LABEL, addDays, fmtDate, hhmm, maskPhone, todayISO } from "@/lib/booking";
 import { useDayBookings } from "@/lib/admin-queries";
 
 export const Route = createFileRoute("/_authenticated/admin/agenda")({
@@ -44,7 +44,7 @@ function Agenda() {
                       <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
                         {b.category && <span className="rounded-full border bg-muted px-2 py-0.5 font-medium">{b.category === "iniciar" ? "Iniciar" : b.category}</span>}
                         {b.cycle && <span className="rounded-full border bg-info/15 px-2 py-0.5 font-medium text-info">Ciclo {b.cycle}</span>}
-                        {b.format && <span className="rounded-full border px-2 py-0.5 text-muted-foreground">{b.format === "dia_inteiro" ? "Dia inteiro" : b.format === "duas_tardes" ? "Duas tardes" : b.format}</span>}
+                        {b.format && <span className="rounded-full border px-2 py-0.5 text-muted-foreground">{FORMAT_LABEL[b.format as keyof typeof FORMAT_LABEL] ?? b.format}</span>}
                       </div>
                     )}
                     <a href={`https://wa.me/55${b.whatsapp}`} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
