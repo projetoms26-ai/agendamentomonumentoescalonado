@@ -36,6 +36,13 @@
       "when": 1792756367886,
       "tag": "0004_grant_schedule_days_access",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792760070823,
+      "tag": "0005_relax_visit_type_check",
+      "breakpoints": true
     }
   ]
 }
