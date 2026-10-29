@@ -103,6 +103,7 @@ export type Database = {
           confirmed: boolean
           created_at: string
           cycle: string | null
+          dependents: string[]
           email: string | null
           full_name: string
           id: string
@@ -113,6 +114,7 @@ export type Database = {
           confirmed?: boolean
           created_at?: string
           cycle?: string | null
+          dependents?: string[]
           email?: string | null
           full_name: string
           id?: string
@@ -123,6 +125,7 @@ export type Database = {
           confirmed?: boolean
           created_at?: string
           cycle?: string | null
+          dependents?: string[]
           email?: string | null
           full_name?: string
           id?: string
@@ -247,6 +250,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      book_approved: {
+        Args: {
+          _category: string
+          _dates: string[]
+          _format: string
+          _whatsapp: string
+        }
+        Returns: {
+          booking_date: string
+          code: string
+          cycle: string
+        }[]
+      }
       book_cycles:
         | {
             Args: {
@@ -316,6 +332,14 @@ export type Database = {
         Args: { _action: string; _code: string; _whatsapp: string }
         Returns: string
       }
+      customer_status: {
+        Args: { _whatsapp: string }
+        Returns: {
+          allowed: string
+          party: number
+          status: string
+        }[]
+      }
       gen_booking_code: { Args: never; Returns: string }
       get_availability: {
         Args: { _from: string; _to: string }
@@ -356,6 +380,15 @@ export type Database = {
         Returns: boolean
       }
       lookup_profile: { Args: { _whatsapp: string }; Returns: string }
+      register_customer: {
+        Args: {
+          _dependents: string[]
+          _email: string
+          _name: string
+          _whatsapp: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin"
