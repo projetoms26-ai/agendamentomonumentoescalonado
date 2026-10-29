@@ -25,6 +25,13 @@ function AdminLayout() {
     queryFn: async () => (await supabase.rpc("claim_first_admin")).data ?? false,
   });
 
+  const pending = useQuery({
+    queryKey: ["pending-count"],
+    enabled: !!role.data,
+    refetchInterval: 30000,
+    queryFn: async () => (await supabase.from("customers").select("id", { count: "exact", head: true }).eq("confirmed", false)).count ?? 0,
+  });
+
   async function signOut() {
     await qc.cancelQueries(); qc.clear();
     await supabase.auth.signOut();
@@ -56,6 +63,7 @@ function AdminLayout() {
               className="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               activeProps={{ className: "!bg-sidebar-primary !text-sidebar-primary-foreground" }}>
               <n.icon className="size-4" /> {n.label}
+              {n.to === "/admin/cadastros" && !!pending.data && <span className="ml-auto rounded-full bg-destructive px-2 py-0.5 text-xs font-bold text-destructive-foreground" aria-label={`${pending.data} cadastros novos`}>{pending.data}</span>}
             </Link>
           ))}
         </nav>
