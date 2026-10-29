@@ -30,7 +30,7 @@ function Cadastros() {
       const { error } = await supabase.from("customers").update({ cycle: v.cycle, confirmed: v.confirmed }).eq("id", v.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Cadastro atualizado"); qc.invalidateQueries({ queryKey: ["customers"] }); },
+    onSuccess: () => { toast.success("Cadastro atualizado"); qc.invalidateQueries({ queryKey: ["customers"] }); qc.invalidateQueries({ queryKey: ["pending-count"] }); },
     onError: () => toast.error("Não foi possível salvar o cadastro"),
   });
 
@@ -40,7 +40,7 @@ function Cadastros() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-xl font-semibold sm:text-2xl">Cadastros</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Confirme cada cadastro e coloque o ciclo atual da pessoa.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Analise cada cadastro e escolha o ciclo que a pessoa está apta a agendar. Só depois de aprovado ela consegue agendar.</p>
       <div className="mt-5 flex flex-wrap gap-2">
         <Input className="max-w-xs" placeholder="Buscar por nome ou celular" value={q} onChange={(e) => setQ(e.target.value)} />
         <Button variant={onlyPending ? "default" : "outline"} onClick={() => setOnlyPending(true)}>A confirmar</Button>
@@ -57,7 +57,7 @@ function Cadastros() {
   );
 }
 
-function Row({ c, busy, onSave }: { c: { id: string; full_name: string; whatsapp: string; cycle: string | null; confirmed: boolean; last_activity_date: string | null }; busy: boolean; onSave: (cycle: string | null, confirmed: boolean) => void }) {
+function Row({ c, busy, onSave }: { c: { id: string; full_name: string; whatsapp: string; cycle: string | null; confirmed: boolean; last_activity_date: string | null; dependents: string[] }; busy: boolean; onSave: (cycle: string | null, confirmed: boolean) => void }) {
   const [cycle, setCycle] = useState(c.cycle ?? "");
   return (
     <div className="rounded-xl border bg-card p-4">
@@ -66,14 +66,15 @@ function Row({ c, busy, onSave }: { c: { id: string; full_name: string; whatsapp
         <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${c.confirmed ? "bg-success/15 text-success border-success/30" : "bg-warning/20 border-warning/50"}`}>{c.confirmed ? "Confirmado" : "A confirmar"}</span>
       </div>
       <a href={`https://wa.me/55${c.whatsapp}`} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><Phone className="size-3.5" /> {maskPhone(c.whatsapp)}</a>
+      <p className="text-sm text-muted-foreground">Dependentes: {c.dependents?.length ? c.dependents.join(", ") : "nenhum"}</p>
       <p className="text-sm text-muted-foreground">Última atividade: {c.last_activity_date ? fmtDate(c.last_activity_date) : "—"}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <label className="text-sm font-medium" htmlFor={`cy-${c.id}`}>Ciclo atual</label>
         <select id={`cy-${c.id}`} className="h-9 rounded-md border border-input bg-background px-3 text-sm" value={cycle} onChange={(e) => setCycle(e.target.value)}>
-          <option value="">Sem ciclo (iniciante)</option>
+          <option value="">Iniciar (i1, i2, i3)</option>
           {CYCLES.map((x) => <option key={x} value={x}>{x}</option>)}
         </select>
-        <Button size="sm" disabled={busy} onClick={() => onSave(cycle || null, true)}><Check /> {c.confirmed ? "Salvar" : "Confirmar cadastro"}</Button>
+        <Button size="sm" disabled={busy} onClick={() => onSave(cycle || null, true)}><Check /> {c.confirmed ? "Salvar" : "Aprovar cadastro"}</Button>
       </div>
     </div>
   );

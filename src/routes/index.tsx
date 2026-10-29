@@ -34,7 +34,7 @@ const formSchema = z.object({
   email: z.string().trim().max(255).email("E-mail inválido").or(z.literal("")),
 });
 
-type Step = "form" | "category" | "format" | "dates" | "review" | "done";
+type Step = "form" | "pending" | "category" | "format" | "dates" | "review" | "done";
 type Category = "Iniciar" | "P1" | "P2" | "Aresta";
 
 function BookingPage() {
@@ -46,6 +46,8 @@ function BookingPage() {
   const [format, setFormat] = useState<IniciarFormat | null>(null);
   const [dates, setDates] = useState<string[]>([]);
   const [party, setParty] = useState(1);
+  const [deps, setDeps] = useState<string[]>([]);
+  const [allowed, setAllowed] = useState<Category | null>(null);
   const [busy, setBusy] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<{ code: string; booking_date: string; cycle: string }[]>([]);
@@ -80,13 +82,24 @@ function BookingPage() {
       r.error.issues.forEach((i) => (e[String(i.path[0])] = i.message));
       setErrors(e); return;
     }
+    const depNames = deps.map((d) => d.trim()).filter(Boolean);
+    if (deps.some((d) => d.trim().length > 0 && d.trim().length < 2) || deps.length !== depNames.length) { setErrors({ deps: "Preencha o nome de cada dependente ou remova o campo vazio" }); return; }
     setErrors({}); setBusy(true);
-    const { data, error } = await supabase.rpc("lookup_profile", { _whatsapp: form.whatsapp });
+    const reg = await supabase.rpc("register_customer", { _name: form.name, _whatsapp: form.whatsapp, _email: form.email, _dependents: depNames });
+    if (reg.error) { setBusy(false); toast.error(reg.error.message || "Não foi possível enviar seu cadastro"); return; }
+    await refreshStatus();
     setBusy(false);
+  }
+
+  async function refreshStatus() {
+    const { data, error } = await supabase.rpc("customer_status", { _whatsapp: form.whatsapp });
     if (error) { toast.error("Não foi possível verificar seu cadastro"); return; }
-    const p = data ?? "iniciante";
-    setProfile(p); setDates([]); setFormat(null);
-    setCategory(p === "iniciante" ? "Iniciar" : (p as Category)); setStep("category");
+    const st = data?.[0];
+    if (!st || st.status !== "aprovado") { setStep("pending"); return; }
+    const a = (st.allowed ?? "Iniciar") as Category;
+    setAllowed(a); setCategory(a); setParty(st.party ?? 1); setProfile(a);
+    setDates([]); setFormat(null);
+    setStep(a === "Iniciar" ? "format" : "dates");
   }
 
   function toggleDate(day: string) {
@@ -111,9 +124,9 @@ function BookingPage() {
   async function confirm() {
     if (!ready || (isIniciar && !format)) return;
     setBusy(true); setSubmitError(null);
-    const { data, error } = await supabase.rpc("book_cycles", {
-      _name: form.name, _whatsapp: form.whatsapp, _email: form.email, _category: category,
-      _format: isIniciar ? (format ?? "") : "", _dates: dates, _party: party,
+    const { data, error } = await supabase.rpc("book_approved", {
+      _whatsapp: form.whatsapp, _category: category,
+      _format: isIniciar ? (format ?? "") : "", _dates: dates,
     });
     setBusy(false);
     if (error || !data?.length) { setSubmitError(error?.message ?? "Não foi possível concluir."); schedule.refetch(); return; }
@@ -126,7 +139,7 @@ function BookingPage() {
 
   const order: Step[] = ["form", "category", "dates", "review"];
   const stepIdx = step === "done" ? 4 : step === "format" ? 1 : order.indexOf(step);
-  const back: Partial<Record<Step, Step>> = { category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
+  const back: Partial<Record<Step, Step>> = { pending: "form", format: "form", dates: category === "Iniciar" ? "format" : "form", review: "dates" };
 
   return (
     <div className="min-h-screen">
@@ -167,17 +180,32 @@ function BookingPage() {
                 <Field label="E-mail (opcional)" error={errors["email"]}>
                   <Input className="h-12 text-base" type="email" autoComplete="email" maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </Field>
-                <Field label="Quantas pessoas vão (incluindo você)?">
-                  <div className="flex items-center gap-3">
-                    <Button type="button" variant="outline" size="icon" aria-label="Menos pessoas" disabled={party <= 1} onClick={() => setParty(party - 1)}>−</Button>
-                    <span className="w-8 text-center text-lg font-semibold">{party}</span>
-                    <Button type="button" variant="outline" size="icon" aria-label="Mais pessoas" disabled={party >= 10} onClick={() => setParty(party + 1)}>+</Button>
-                    <span className="text-sm text-muted-foreground">{party > 1 ? "Você + familiares, nos mesmos dias" : "Só você"}</span>
-                  </div>
-                </Field>
-                <p className="text-xs text-muted-foreground">Seu ciclo é definido pela equipe após a confirmação do cadastro.</p>
-                <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Continuar</Button>
+                <div className="space-y-2">
+                  <Label>Dependentes (opcional)</Label>
+                  {deps.map((d, i) => (
+                    <div key={i} className="flex gap-2">
+                      <Input className="h-11" aria-label={`Nome do dependente ${i + 1}`} placeholder={`Nome do dependente ${i + 1}`} maxLength={120} value={d}
+                        onChange={(e) => setDeps(deps.map((x, j) => (j === i ? e.target.value : x)))} />
+                      <Button type="button" variant="outline" aria-label="Remover dependente" onClick={() => setDeps(deps.filter((_, j) => j !== i))}>Remover</Button>
+                    </div>
+                  ))}
+                  {errors["deps"] && <p className="text-sm text-destructive">{errors["deps"]}</p>}
+                  {deps.length < 9 && <Button type="button" variant="outline" size="sm" onClick={() => setDeps([...deps, ""])}>+ Adicionar dependente</Button>}
+                </div>
+                <p className="text-xs text-muted-foreground">Após enviar, a equipe analisa seu cadastro e libera o ciclo ideal para você agendar. Se já tem cadastro, informe o mesmo celular.</p>
+                <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Enviar cadastro</Button>
               </form>
+            </section>
+          )}
+
+          {step === "pending" && (
+            <section className="text-center">
+              <CheckCircle2 className="mx-auto size-14 text-warning" />
+              <h2 className="mt-3 text-xl font-semibold">Cadastro em análise</h2>
+              <p className="mt-2 text-muted-foreground">Recebemos seu cadastro e a equipe foi avisada. Assim que ele for aprovado e seu ciclo liberado, volte aqui, informe o mesmo celular e faça o agendamento.</p>
+              <Button variant="outline" size="lg" className="mt-6 w-full" disabled={busy} onClick={async () => { setBusy(true); await refreshStatus(); setBusy(false); }}>
+                {busy && <Loader2 className="animate-spin" />} Verificar aprovação
+              </Button>
             </section>
           )}
 
@@ -265,7 +293,7 @@ function BookingPage() {
               <dl className="mt-5 divide-y rounded-xl border bg-background">
                 <Row k="Nome" v={form.name} />
                 <Row k="Celular" v={form.whatsapp} />
-                <Row k="Pessoas" v={String(party)} />
+                <Row k="Pessoas" v={party > 1 ? `${party} (você + ${party - 1} dependente${party > 2 ? "s" : ""})` : "Só você"} />
                 <Row k="Categoria" v={isIniciar ? `Iniciar — ${format ? FORMAT_LABEL[format] : ""}` : category} />
                 {plan.map((p, i) => <Row key={i} k={p.cycle} v={<span className="capitalize">{fmtLong(p.date)}</span>} />)}
               </dl>
