@@ -1,5 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+const CYCLE_OPTS = ["i1", "i2", "i3", "P1", "P2", "Aresta"];
+function CycleFix({ id, value }: { id: string; value: string | null }) {
+  const qc = useQueryClient();
+  const [cycle, setCycle] = useState(value ?? "");
+  const [busy, setBusy] = useState(false);
+  async function save() {
+    if (!cycle) return;
+    setBusy(true);
+    const category = cycle.startsWith("i") ? "Iniciar" : cycle;
+    const { error } = await supabase.from("bookings").update({ cycle, category, visit_type: category }).eq("id", id);
+    setBusy(false);
+    if (error) { toast.error("Não foi possível corrigir o ciclo"); return; }
+    toast.success("Ciclo do agendamento confirmado");
+    qc.invalidateQueries();
+  }
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <label className="text-xs font-medium text-muted-foreground" htmlFor={`fix-${id}`}>Ciclo agendado</label>
+      <select id={`fix-${id}`} className="h-9 rounded-md border border-input bg-background px-2 text-sm" value={cycle} onChange={(e) => setCycle(e.target.value)}>
+        <option value="" disabled>Escolha</option>
+        {CYCLE_OPTS.map((c) => <option key={c} value={c}>{c}</option>)}
+      </select>
+      <Button size="sm" variant="outline" disabled={busy || !cycle} onClick={save}>Confirmar ciclo</Button>
+    </div>
+  );
+}
 import { ChevronLeft, ChevronRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/admin/StatusSelect";
@@ -52,6 +82,7 @@ function Agenda() {
                     </a>
                     <p className="mt-3 text-xs font-medium text-muted-foreground">Gerenciar atividade (Concluiu, Faltou, Repetir e Passou são só do administrador; Passou avança o ciclo)</p>
                     <div className="mt-1.5"><QuickStatus id={b.id} value={b.status} /></div>
+                    <CycleFix id={b.id} value={b.cycle} />
                   </div>
                 ))}
               </div>
