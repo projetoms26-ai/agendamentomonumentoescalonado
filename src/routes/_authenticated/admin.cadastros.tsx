@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Phone } from "lucide-react";
+import { Check, Phone, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,14 @@ function Cadastros() {
     onSuccess: () => { toast.success("Cadastro atualizado"); qc.invalidateQueries({ queryKey: ["customers"] }); qc.invalidateQueries({ queryKey: ["pending-count"] }); },
     onError: () => toast.error("Não foi possível salvar o cadastro"),
   });
+  const del = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("customers").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Cadastro apagado"); qc.invalidateQueries({ queryKey: ["customers"] }); qc.invalidateQueries({ queryKey: ["pending-count"] }); },
+    onError: () => toast.error("Não foi possível apagar o cadastro"),
+  });
 
   const term = q.trim().toLowerCase();
   const rows = (list.data ?? []).filter((c) => (!onlyPending || !c.confirmed) && (!term || c.full_name.toLowerCase().includes(term) || c.whatsapp.includes(term.replace(/\D/g, "") || "§")));
@@ -50,14 +58,14 @@ function Cadastros() {
         <p className="mt-6 rounded-xl border bg-card p-6 text-muted-foreground">{onlyPending ? "Nenhum cadastro aguardando confirmação." : "Nenhum cadastro encontrado."}</p>
       ) : (
         <div className="mt-6 space-y-2">
-          {rows.map((c) => <Row key={c.id} c={c} busy={save.isPending} onSave={(cycle, confirmed) => save.mutate({ id: c.id, cycle, confirmed })} />)}
+          {rows.map((c) => <Row key={c.id} c={c} busy={save.isPending || del.isPending} onSave={(cycle, confirmed) => save.mutate({ id: c.id, cycle, confirmed })} onDelete={() => del.mutate(c.id)} />)}
         </div>
       )}
     </div>
   );
 }
 
-function Row({ c, busy, onSave }: { c: { id: string; full_name: string; whatsapp: string; cycle: string | null; confirmed: boolean; last_activity_date: string | null; dependents: string[] }; busy: boolean; onSave: (cycle: string | null, confirmed: boolean) => void }) {
+function Row({ c, busy, onSave, onDelete }: { c: { id: string; full_name: string; whatsapp: string; cycle: string | null; confirmed: boolean; last_activity_date: string | null; dependents: string[] }; busy: boolean; onSave: (cycle: string | null, confirmed: boolean) => void; onDelete: () => void }) {
   const [cycle, setCycle] = useState(c.cycle ?? "");
   return (
     <div className="rounded-xl border bg-card p-4">
@@ -75,6 +83,7 @@ function Row({ c, busy, onSave }: { c: { id: string; full_name: string; whatsapp
           {CYCLES.map((x) => <option key={x} value={x}>{x}</option>)}
         </select>
         <Button size="sm" disabled={busy} onClick={() => onSave(cycle || null, true)}><Check /> {c.confirmed ? "Salvar" : "Aprovar cadastro"}</Button>
+        <Button size="sm" variant="outline" className="text-destructive" disabled={busy} onClick={() => confirm(`Apagar o cadastro de ${c.full_name}? Os agendamentos já feitos continuam na agenda.`) && onDelete()}><Trash2 /> Apagar</Button>
       </div>
     </div>
   );
