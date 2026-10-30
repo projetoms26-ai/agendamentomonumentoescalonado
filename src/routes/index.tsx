@@ -99,7 +99,7 @@ function BookingPage() {
     const a = (st.allowed ?? "Iniciar") as Category;
     setAllowed(a); setCategory(a); setParty(st.party ?? 1); setProfile(a);
     setDates([]); setFormat(null);
-    setStep(a === "Iniciar" ? "format" : "dates");
+    setStep("category");
   }
 
   function toggleDate(day: string) {
@@ -139,7 +139,7 @@ function BookingPage() {
 
   const order: Step[] = ["form", "category", "dates", "review"];
   const stepIdx = step === "done" ? 4 : step === "format" ? 1 : order.indexOf(step);
-  const back: Partial<Record<Step, Step>> = { pending: "form", format: "form", dates: category === "Iniciar" ? "format" : "form", review: "dates" };
+  const back: Partial<Record<Step, Step>> = { pending: "form", category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
 
   return (
     <div className="min-h-screen">
