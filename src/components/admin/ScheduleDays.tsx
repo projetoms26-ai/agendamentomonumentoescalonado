@@ -17,7 +17,7 @@ export function ScheduleDays() {
   const days = useQuery({
     queryKey: ["admin-schedule-days"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("schedule_days").select("*").gte("day", todayISO()).order("day");
+      const { data, error } = await supabase.from("schedule_periods").select("*").gte("day", todayISO()).order("day").order("period");
       if (error) throw error;
       return data;
     },
@@ -30,7 +30,7 @@ export function ScheduleDays() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from("schedule_days").upsert(draft, { onConflict: "day" });
+    const { error } = await supabase.from("schedule_periods").upsert(draft, { onConflict: "day,period" });
     setBusy(false);
     if (error) { toast.error("Não foi possível publicar as vagas. Tente novamente."); return; }
     toast.success("Data e vagas publicadas");
@@ -50,10 +50,10 @@ export function ScheduleDays() {
           <div className="space-y-1.5">
             <Label id="schedule-period-label">Turno</Label>
             <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="schedule-period-label">
-              <Button type="button" role="radio" aria-checked={draft.period === "tarde"} variant={draft.period === "tarde" ? "default" : "outline"} onClick={() => setDraft({ ...draft, period: "tarde" })}>
+              <Button type="button" role="radio" aria-checked={draft.period === "tarde"} variant={draft.period === "tarde" ? "default" : "outline"} onClick={() => setDraft({ ...draft, period: "tarde", start_time: "14:00" })}>
                 <Sunset className="size-4 shrink-0" /> Só tardes
               </Button>
-              <Button type="button" role="radio" aria-checked={draft.period === "integral"} variant={draft.period === "integral" ? "default" : "outline"} onClick={() => setDraft({ ...draft, period: "integral" })}>
+              <Button type="button" role="radio" aria-checked={draft.period === "integral"} variant={draft.period === "integral" ? "default" : "outline"} onClick={() => setDraft({ ...draft, period: "integral", start_time: "08:00" })}>
                 <Sun className="size-4 shrink-0" /> Dia inteiro
               </Button>
             </div>
@@ -68,7 +68,7 @@ export function ScheduleDays() {
       </form>
       {days.isLoading ? <p className="text-sm text-muted-foreground">Carregando datas…</p> : days.isError ? <p role="alert" className="text-sm text-destructive">Não foi possível carregar a agenda.</p> : !days.data?.length ? <p className="text-sm text-muted-foreground">Nenhuma data publicada.</p> : (
         <div className="divide-y">
-          {days.data.map((day) => <div key={day.day} className="flex items-center justify-between gap-3 py-3"><div className="min-w-0"><p className="font-semibold">{fmtDate(day.day)}</p><p className="text-sm text-muted-foreground">{PERIODS[day.period]} · {hhmm(day.start_time)}–{hhmm(day.end_time)}</p><p className="text-sm">Iniciar: {day.iniciar_capacity} · P1: {day.p1_capacity} · P2: {day.p2_capacity} · Aresta: {day.aresta_capacity}</p></div><Button variant="outline" size="icon" aria-label={`Editar ${fmtDate(day.day)}`} title="Editar data e vagas" onClick={() => setDraft({ day: day.day, period: day.period, start_time: hhmm(day.start_time), end_time: hhmm(day.end_time), iniciar_capacity: day.iniciar_capacity, p1_capacity: day.p1_capacity, p2_capacity: day.p2_capacity, aresta_capacity: day.aresta_capacity })}><Pencil /></Button></div>)}
+          {days.data.map((day) => <div key={`${day.day}|${day.period}`} className="flex items-center justify-between gap-3 py-3"><div className="min-w-0"><p className="font-semibold">{fmtDate(day.day)}</p><p className="text-sm text-muted-foreground">{PERIODS[day.period]} · {hhmm(day.start_time)}–{hhmm(day.end_time)}</p><p className="text-sm">Iniciar: {day.iniciar_capacity} · P1: {day.p1_capacity} · P2: {day.p2_capacity} · Aresta: {day.aresta_capacity}</p></div><Button variant="outline" size="icon" aria-label={`Editar ${fmtDate(day.day)} ${PERIODS[day.period]}`} title="Editar turno e vagas" onClick={() => setDraft({ day: day.day, period: day.period, start_time: hhmm(day.start_time), end_time: hhmm(day.end_time), iniciar_capacity: day.iniciar_capacity, p1_capacity: day.p1_capacity, p2_capacity: day.p2_capacity, aresta_capacity: day.aresta_capacity })}><Pencil /></Button></div>)}
         </div>
       )}
     </section>

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
+import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
 import {
   addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles, FORMAT_LABEL, manhaTardeOk,
   requiredDates, todayISO, weekdayShort, type IniciarFormat,
@@ -44,7 +45,9 @@ function BookingPage() {
   const [profile, setProfile] = useState<string>("iniciante");
   const [category, setCategory] = useState<Category>("Iniciar");
   const [format, setFormat] = useState<IniciarFormat | null>(null);
-  const [dates, setDates] = useState<string[]>([]);
+  const [choices, setChoices] = useState<ScheduleChoice[]>([]);
+  const dates = choices.map((choice) => choice.day);
+  const setDates = (_dates: string[]) => setChoices([]);
   const [party, setParty] = useState(1);
   const [deps, setDeps] = useState<string[]>([]);
   const [allowed, setAllowed] = useState<Category | null>(null);
@@ -70,7 +73,7 @@ function BookingPage() {
   const ready = dates.length === need;
 
   const available = (schedule.data ?? []).filter((d) => {
-    if (isIniciar) return !!format && dayFitsFormat(d.period, format);
+    if (isIniciar) return !!format && (format === "duas_tardes" ? d.period === "tarde" : dayFitsFormat(d.period, format));
     return true;
   });
   const leftOf = (d: NonNullable<typeof schedule.data>[number]) => (category === "Iniciar" ? d.iniciar_left : category === "P1" ? d.p1_left : category === "P2" ? d.p2_left : d.aresta_left);
@@ -102,15 +105,14 @@ function BookingPage() {
     setStep("category");
   }
 
-  function toggleDate(day: string) {
-    if (dates.includes(day)) return setDates(dates.filter((d) => d !== day));
-    if (need === 1) return setDates([day]);
-    if (format === "tarde_integral" && isIniciar && dates.length === 1) {
-      const per = (x: string) => schedule.data?.find((d) => d.day === x)?.period ?? "";
-      if (!manhaTardeOk(per(dates[0]!), per(day))) { toast.warning("Escolha uma data à tarde e outra de período integral."); return; }
+  function toggleDate(choice: ScheduleChoice) {
+    if (choices.some((item) => scheduleKey(item) === scheduleKey(choice))) {
+      setChoices(choices.filter((item) => scheduleKey(item) !== scheduleKey(choice))); return;
     }
-    if (dates.length >= need) { toast.warning(`Você já selecionou ${need} datas. Desmarque uma para trocar.`); return; }
-    setDates([...dates, day]);
+    if (!canAddScheduleChoice(choices, choice, format, need)) {
+      toast.warning(format === "tarde_integral" ? "Escolha uma tarde e um dia integral em datas diferentes." : "Escolha datas diferentes ou desmarque uma para trocar."); return;
+    }
+    setChoices(need === 1 ? [choice] : [...choices, choice]);
   }
 
   function goReview() {
@@ -124,9 +126,9 @@ function BookingPage() {
   async function confirm() {
     if (!ready || (isIniciar && !format)) return;
     setBusy(true); setSubmitError(null);
-    const { data, error } = await supabase.rpc("book_approved", {
+    const { data, error } = await supabase.rpc("book_periods", {
       _whatsapp: form.whatsapp, _category: category,
-      _format: isIniciar ? (format ?? "") : "", _dates: dates,
+      _format: isIniciar ? (format ?? "") : "", _dates: dates, _periods: choices.map((choice) => choice.period),
     });
     setBusy(false);
     if (error || !data?.length) { setSubmitError(error?.message ?? "Não foi possível concluir."); schedule.refetch(); return; }
@@ -248,9 +250,9 @@ function BookingPage() {
                 <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
                   {available.map((d) => {
                     const left = leftOf(d);
-                    const sel = dates.includes(d.day);
+                    const sel = choices.some((choice) => scheduleKey(choice) === scheduleKey(d));
                     return (
-                      <Button key={d.day} variant="outline" disabled={left < party && !sel} onClick={() => toggleDate(d.day)} aria-pressed={sel}
+                      <Button key={scheduleKey(d)} variant="outline" disabled={left < party && !sel} onClick={() => toggleDate(d)} aria-pressed={sel}
                         className={`relative flex h-auto flex-col items-center gap-0 whitespace-normal rounded-lg border-2 px-2 py-3 transition disabled:cursor-not-allowed disabled:opacity-40 ${sel ? "border-primary bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground" : "bg-background hover:border-primary"}`}>
                         {sel && <Check className="absolute right-2 top-2 size-4" />}
                         <span className="text-xs font-medium uppercase opacity-70">{weekdayShort(d.day)}</span>
@@ -284,7 +286,7 @@ function BookingPage() {
                 <Row k="Celular" v={form.whatsapp} />
                 <Row k="Pessoas" v={party > 1 ? `${party} (você + ${party - 1} dependente${party > 2 ? "s" : ""})` : "Só você"} />
                 <Row k="Categoria" v={isIniciar ? `Iniciar — ${format ? FORMAT_LABEL[format] : ""}` : category} />
-                {plan.map((p, i) => <Row key={i} k={p.cycle} v={<span className="capitalize">{fmtLong(p.date)}</span>} />)}
+                {plan.map((p, i) => <Row key={i} k={p.cycle} v={<span className="capitalize">{fmtLong(p.date)} · {PERIODS[choices.find((choice) => choice.day === p.date)?.period ?? ""]}</span>} />)}
               </dl>
               <p className="mt-4 flex gap-2 text-sm text-muted-foreground"><Wallet className="size-4 shrink-0" /> {settings.data?.payment_note}</p>
               {submitError && <p className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm font-medium text-destructive">{submitError}</p>}
