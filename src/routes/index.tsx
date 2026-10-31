@@ -34,7 +34,7 @@ const formSchema = z.object({
   email: z.string().trim().max(255).email("E-mail inválido").or(z.literal("")),
 });
 
-type Step = "form" | "pending" | "category" | "format" | "dates" | "review" | "done";
+type Step = "form" | "category" | "format" | "dates" | "review" | "done";
 type Category = "Iniciar" | "P1" | "P2" | "Aresta";
 
 function BookingPage() {
@@ -95,7 +95,7 @@ function BookingPage() {
     const { data, error } = await supabase.rpc("customer_status", { _whatsapp: form.whatsapp });
     if (error) { toast.error("Não foi possível verificar seu cadastro"); return; }
     const st = data?.[0];
-    if (!st || st.status !== "aprovado") { setStep("pending"); return; }
+    if (!st || st.status === "nao_cadastrado") { toast.error("Não foi possível localizar seu cadastro. Tente enviar novamente."); return; }
     const a = (st.allowed ?? "Iniciar") as Category;
     setAllowed(a); setCategory(a); setParty(st.party ?? 1); setProfile(a);
     setDates([]); setFormat(null);
@@ -139,7 +139,7 @@ function BookingPage() {
 
   const order: Step[] = ["form", "category", "dates", "review"];
   const stepIdx = step === "done" ? 4 : step === "format" ? 1 : order.indexOf(step);
-  const back: Partial<Record<Step, Step>> = { pending: "form", category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
+  const back: Partial<Record<Step, Step>> = { category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
 
   return (
     <div className="min-h-screen">
@@ -192,20 +192,9 @@ function BookingPage() {
                   {errors["deps"] && <p className="text-sm text-destructive">{errors["deps"]}</p>}
                   {deps.length < 9 && <Button type="button" variant="outline" size="sm" onClick={() => setDeps([...deps, ""])}>+ Adicionar dependente</Button>}
                 </div>
-                <p className="text-xs text-muted-foreground">Após enviar, a equipe analisa seu cadastro e libera o ciclo ideal para você agendar. Se já tem cadastro, informe o mesmo celular.</p>
+                <p className="text-xs text-muted-foreground">Após enviar, você já pode escolher seu ciclo e agendar. Se já tem cadastro, informe o mesmo celular.</p>
                 <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Enviar cadastro</Button>
               </form>
-            </section>
-          )}
-
-          {step === "pending" && (
-            <section className="text-center">
-              <CheckCircle2 className="mx-auto size-14 text-warning" />
-              <h2 className="mt-3 text-xl font-semibold">Cadastro em análise</h2>
-              <p className="mt-2 text-muted-foreground">Recebemos seu cadastro e a equipe foi avisada. Assim que ele for aprovado e seu ciclo liberado, volte aqui, informe o mesmo celular e faça o agendamento.</p>
-              <Button variant="outline" size="lg" className="mt-6 w-full" disabled={busy} onClick={async () => { setBusy(true); await refreshStatus(); setBusy(false); }}>
-                {busy && <Loader2 className="animate-spin" />} Verificar aprovação
-              </Button>
             </section>
           )}
 
