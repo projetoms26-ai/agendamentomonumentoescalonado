@@ -1,0 +1,3 @@
+- [ ] Permitir dois turnos na mesma data com capacidades independentes, preservando a agenda existente.
+- [ ] Atualizar publicação administrativa e escolha pública por data e turno.
+- [ ] Testar seleção, saldos e isolamento dos turnos.
