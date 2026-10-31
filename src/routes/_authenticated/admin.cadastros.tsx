@@ -48,7 +48,7 @@ function Cadastros() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-xl font-semibold sm:text-2xl">Cadastros</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Analise cada cadastro e escolha o ciclo que a pessoa está apta a agendar. Só depois de aprovado ela consegue agendar.</p>
+      <p className="mt-1 text-sm text-muted-foreground">O agendamento está liberado após o cadastro. A conferência administrativa e o ajuste do ciclo continuam disponíveis.</p>
       <div className="mt-5 flex flex-wrap gap-2">
         <Input className="max-w-xs" placeholder="Buscar por nome ou celular" value={q} onChange={(e) => setQ(e.target.value)} />
         <Button variant={onlyPending ? "default" : "outline"} onClick={() => setOnlyPending(true)}>A confirmar</Button>
@@ -82,7 +82,7 @@ function Row({ c, busy, onSave, onDelete }: { c: { id: string; full_name: string
           <option value="">Iniciar (i1, i2, i3)</option>
           {CYCLES.map((x) => <option key={x} value={x}>{x}</option>)}
         </select>
-        <Button size="sm" disabled={busy} onClick={() => onSave(cycle || null, true)}><Check /> {c.confirmed ? "Salvar" : "Aprovar cadastro"}</Button>
+        <Button size="sm" disabled={busy} onClick={() => onSave(cycle || null, true)}><Check /> {c.confirmed ? "Salvar" : "Confirmar cadastro"}</Button>
         <Button size="sm" variant="outline" className="text-destructive" disabled={busy} onClick={() => confirm(`Apagar o cadastro de ${c.full_name}? Os agendamentos já feitos continuam na agenda.`) && onDelete()}><Trash2 /> Apagar</Button>
       </div>
     </div>
