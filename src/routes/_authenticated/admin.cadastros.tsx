@@ -9,7 +9,15 @@ import { Input } from "@/components/ui/input";
 import { CYCLES, fmtDate, maskPhone } from "@/lib/booking";
 
 export const Route = createFileRoute("/_authenticated/admin/cadastros")({
-  head: () => ({ meta: [{ title: "Cadastros — Painel MME" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [
+    { title: "Cadastros — Painel MME" },
+    { name: "description", content: "Conferência de cadastros, dependentes e ciclos no painel administrativo do App MME." },
+    { property: "og:title", content: "Cadastros — Painel MME" },
+    { property: "og:description", content: "Gestão administrativa de cadastros, dependentes e ciclos do App MME." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: Cadastros,
 });
 
