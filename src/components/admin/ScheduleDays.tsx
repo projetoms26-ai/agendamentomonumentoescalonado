@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarPlus, Pencil, Loader2 } from "lucide-react";
+import { CalendarPlus, Pencil, Loader2, Sun, Sunset } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,17 @@ export function ScheduleDays() {
       <form onSubmit={save} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5"><Label htmlFor="schedule-day">Data</Label><Input id="schedule-day" type="date" min={todayISO()} required value={draft.day} onChange={(e) => setDraft({ ...draft, day: e.target.value })} /></div>
-          <div className="space-y-1.5"><Label htmlFor="schedule-period">Turno</Label><select id="schedule-period" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.period} onChange={(e) => setDraft({ ...draft, period: e.target.value })}>{Object.entries(PERIODS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+          <div className="space-y-1.5">
+            <Label id="schedule-period-label">Turno</Label>
+            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-labelledby="schedule-period-label">
+              <Button type="button" role="radio" aria-checked={draft.period === "tarde"} variant={draft.period === "tarde" ? "default" : "outline"} onClick={() => setDraft({ ...draft, period: "tarde" })}>
+                <Sunset className="size-4 shrink-0" /> Só tardes
+              </Button>
+              <Button type="button" role="radio" aria-checked={draft.period === "integral"} variant={draft.period === "integral" ? "default" : "outline"} onClick={() => setDraft({ ...draft, period: "integral" })}>
+                <Sun className="size-4 shrink-0" /> Dia inteiro
+              </Button>
+            </div>
+          </div>
           <div className="space-y-1.5"><Label htmlFor="schedule-start">Início</Label><Input id="schedule-start" type="time" required value={draft.start_time} onChange={(e) => setDraft({ ...draft, start_time: e.target.value })} /></div>
           <div className="space-y-1.5"><Label htmlFor="schedule-end">Fim</Label><Input id="schedule-end" type="time" required value={draft.end_time} onChange={(e) => setDraft({ ...draft, end_time: e.target.value })} /></div>
         </div>
