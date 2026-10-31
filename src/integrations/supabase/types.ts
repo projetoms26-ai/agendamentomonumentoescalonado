@@ -48,6 +48,7 @@ export type Database = {
           metadata: Json
           party_size: number
           payment_status: string
+          schedule_period: string | null
           slot_time: string
           status: Database["public"]["Enums"]["booking_status"]
           updated_at: string
@@ -69,6 +70,7 @@ export type Database = {
           metadata?: Json
           party_size?: number
           payment_status?: string
+          schedule_period?: string | null
           slot_time: string
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
@@ -90,6 +92,7 @@ export type Database = {
           metadata?: Json
           party_size?: number
           payment_status?: string
+          schedule_period?: string | null
           slot_time?: string
           status?: Database["public"]["Enums"]["booking_status"]
           updated_at?: string
@@ -156,6 +159,42 @@ export type Database = {
           p2_capacity?: number
           period?: string
           start_time?: string
+        }
+        Update: {
+          aresta_capacity?: number
+          created_at?: string
+          day?: string
+          end_time?: string
+          iniciar_capacity?: number
+          p1_capacity?: number
+          p2_capacity?: number
+          period?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
+      schedule_periods: {
+        Row: {
+          aresta_capacity: number
+          created_at: string
+          day: string
+          end_time: string
+          iniciar_capacity: number
+          p1_capacity: number
+          p2_capacity: number
+          period: string
+          start_time: string
+        }
+        Insert: {
+          aresta_capacity?: number
+          created_at?: string
+          day: string
+          end_time: string
+          iniciar_capacity?: number
+          p1_capacity?: number
+          p2_capacity?: number
+          period: string
+          start_time: string
         }
         Update: {
           aresta_capacity?: number
@@ -295,6 +334,20 @@ export type Database = {
               cycle: string
             }[]
           }
+      book_periods: {
+        Args: {
+          _category: string
+          _dates: string[]
+          _format: string
+          _periods: string[]
+          _whatsapp: string
+        }
+        Returns: {
+          booking_date: string
+          code: string
+          cycle: string
+        }[]
+      }
       claim_first_admin: { Args: never; Returns: boolean }
       create_booking:
         | {
