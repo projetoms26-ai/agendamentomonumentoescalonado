@@ -10,6 +10,15 @@ import { useDayBookings } from "@/lib/admin-queries";
 import { fmtDate, fmtLong, hhmm, maskPhone, todayISO } from "@/lib/booking";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
+  head: () => ({ meta: [
+    { title: "Resumo de agendamentos — App MME" },
+    { name: "description", content: "Painel administrativo de acompanhamento das reservas do App MME." },
+    { property: "og:title", content: "Resumo de agendamentos — App MME" },
+    { property: "og:description", content: "Painel administrativo de acompanhamento das reservas do App MME." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: Dashboard,
 });
 

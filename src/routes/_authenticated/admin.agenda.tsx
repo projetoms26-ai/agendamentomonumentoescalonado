@@ -37,6 +37,15 @@ import { FORMAT_LABEL, addDays, fmtDate, hhmm, maskPhone, todayISO } from "@/lib
 import { useDayBookings } from "@/lib/admin-queries";
 
 export const Route = createFileRoute("/_authenticated/admin/agenda")({
+  head: () => ({ meta: [
+    { title: "Agenda do dia — App MME" },
+    { name: "description", content: "Consulta e gestão administrativa dos agendamentos do dia no App MME." },
+    { property: "og:title", content: "Agenda do dia — App MME" },
+    { property: "og:description", content: "Consulta e gestão administrativa dos agendamentos do dia no App MME." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: Agenda,
 });
 
