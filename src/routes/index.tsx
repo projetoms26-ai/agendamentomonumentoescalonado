@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
+import { BookingInformation } from "@/components/BookingInformation";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
 import {
   addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles, FORMAT_LABEL, manhaTardeOk,
@@ -35,11 +36,11 @@ const formSchema = z.object({
   email: z.string().trim().max(255).email("E-mail inválido").or(z.literal("")),
 });
 
-type Step = "form" | "category" | "format" | "dates" | "review" | "done";
+type Step = "information" | "form" | "category" | "format" | "dates" | "review" | "done";
 type Category = "Iniciar" | "P1" | "P2" | "Aresta";
 
 function BookingPage() {
-  const [step, setStep] = useState<Step>("form");
+  const [step, setStep] = useState<Step>("information");
   const [form, setForm] = useState({ name: "", whatsapp: "", email: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profile, setProfile] = useState<string>("iniciante");
@@ -141,7 +142,7 @@ function BookingPage() {
 
   const order: Step[] = ["form", "category", "dates", "review"];
   const stepIdx = step === "done" ? 4 : step === "format" ? 1 : order.indexOf(step);
-  const back: Partial<Record<Step, Step>> = { category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
+  const back: Partial<Record<Step, Step>> = { form: "information", category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
 
   return (
     <div className="min-h-screen">
@@ -153,7 +154,7 @@ function BookingPage() {
         <div className="mx-auto mt-10 max-w-2xl">
           <h1 className="text-3xl font-semibold sm:text-4xl">Agende seu ciclo</h1>
           <p className="mt-2 text-primary-foreground/75">Cadastro, escolha das datas e confirmação. Pagamento no local.</p>
-          {step !== "done" && (
+          {step !== "done" && step !== "information" && (
             <div className="mt-6 flex gap-1.5">
               {[0, 1, 2, 3].map((i) => <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= stepIdx ? "bg-accent" : "bg-primary-foreground/20"}`} />)}
             </div>
@@ -164,10 +165,12 @@ function BookingPage() {
       <main className="mx-auto -mt-10 max-w-2xl space-y-6 px-4 pb-16">
         <div className="rounded-2xl border bg-card p-5 shadow-xl shadow-primary/5 sm:p-7">
           {back[step] && (
-            <button onClick={() => setStep(back[step]!)} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" onClick={() => { const previous = back[step]; if (previous) setStep(previous); }} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
               <ArrowLeft className="size-4" /> Voltar
-            </button>
+            </Button>
           )}
+
+          {step === "information" && <BookingInformation onContinue={() => setStep("form")} />}
 
           {step === "form" && (
             <section>

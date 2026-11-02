@@ -1,3 +1,4 @@
 - [ ] Permitir dois turnos na mesma data com capacidades independentes, preservando a agenda existente.
 - [ ] Atualizar publicação administrativa e escolha pública por data e turno.
 - [ ] Testar seleção, saldos e isolamento dos turnos.
+- [ ] Exibir informações de status, critérios, tempos e fotos antes do cadastro e verificar acesso ao formulário.
