@@ -2,3 +2,4 @@
 - [ ] Atualizar publicação administrativa e escolha pública por data e turno.
 - [ ] Testar seleção, saldos e isolamento dos turnos.
 - [x] Exibir informações de status, critérios, tempos e fotos antes do cadastro e verificar acesso ao formulário.
+- [ ] Acrescentar etapas e regras de transição informativas antes do cadastro e verificar a apresentação.
