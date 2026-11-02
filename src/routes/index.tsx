@@ -152,7 +152,7 @@ function BookingPage() {
           <Link to="/admin" className="text-sm text-primary-foreground/70 hover:text-primary-foreground">Área restrita</Link>
         </div>
         <div className="mx-auto mt-10 max-w-2xl">
-          <h1 className="text-3xl font-semibold sm:text-4xl">App MME</h1>
+          <h1 className="text-3xl font-semibold sm:text-4xl">Agende seu ciclo</h1>
           <p className="mt-2 text-primary-foreground/75">Cadastro, escolha das datas e confirmação. Pagamento no local.</p>
           {step !== "done" && step !== "information" && (
             <div className="mt-6 flex gap-1.5">
