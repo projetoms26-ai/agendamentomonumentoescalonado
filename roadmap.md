@@ -3,4 +3,4 @@
 - [ ] Testar seleção, saldos e isolamento dos turnos.
 - [x] Exibir informações de status, critérios, tempos e fotos antes do cadastro e verificar acesso ao formulário.
 - [x] Acrescentar etapas e regras de transição informativas antes do cadastro e verificar a apresentação.
-- [ ] Atualizar o nome principal para App MME e incluir logo de pirâmide com ícone do navegador.
+- [x] Atualizar o nome principal para App MME e incluir logo de pirâmide com ícone do navegador.
