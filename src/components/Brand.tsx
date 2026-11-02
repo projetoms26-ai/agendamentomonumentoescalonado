@@ -1,14 +1,11 @@
-import { CalendarCheck } from "lucide-react";
+import pyramidLogo from "@/assets/app-mme-pyramid-logo.png";
 
-// Placeholder mark — swap for the client's logo image when available.
 export function Brand({ light = false }: { light?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="grid size-10 place-items-center rounded-xl bg-accent text-accent-foreground">
-        <CalendarCheck className="size-5" />
-      </span>
+      <img src={pyramidLogo} alt="Logo de pirâmide App MME" width={48} height={48} className="size-12 shrink-0 object-contain" />
       <span className={`font-display text-lg font-semibold ${light ? "text-primary-foreground" : "text-foreground"}`}>
-        Agendamento
+        App MME
       </span>
     </div>
   );
