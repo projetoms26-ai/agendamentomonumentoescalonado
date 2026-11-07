@@ -36,14 +36,15 @@ const formSchema = z.object({
   email: z.string().trim().max(255).email("E-mail inválido").or(z.literal("")),
 });
 
-type Step = "information" | "form" | "category" | "format" | "dates" | "review" | "done";
+type Step = "home" | "login" | "pending" | "information" | "form" | "category" | "format" | "dates" | "review" | "done";
 type Category = "Iniciar" | "P1" | "P2" | "Aresta";
 
 function BookingPage() {
-  const [step, setStep] = useState<Step>("information");
+  const [step, setStep] = useState<Step>("home");
   const [form, setForm] = useState({ name: "", whatsapp: "", email: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [profile, setProfile] = useState<string>("iniciante");
+  const [regCycle, setRegCycle] = useState<Category>("Iniciar");
+  const [loginPhone, setLoginPhone] = useState("");
   const [category, setCategory] = useState<Category>("Iniciar");
   const [format, setFormat] = useState<IniciarFormat | null>(null);
   const [choices, setChoices] = useState<ScheduleChoice[]>([]);
@@ -89,19 +90,28 @@ function BookingPage() {
     const depNames = deps.map((d) => d.trim()).filter(Boolean);
     if (deps.some((d) => d.trim().length > 0 && d.trim().length < 2) || deps.length !== depNames.length) { setErrors({ deps: "Preencha o nome de cada dependente ou remova o campo vazio" }); return; }
     setErrors({}); setBusy(true);
-    const reg = await supabase.rpc("register_customer", { _name: form.name, _whatsapp: form.whatsapp, _email: form.email, _dependents: depNames });
+    const reg = await supabase.rpc("register_customer", { _name: form.name, _whatsapp: form.whatsapp, _email: form.email, _dependents: depNames, _cycle: regCycle });
     if (reg.error) { setBusy(false); toast.error(reg.error.message || "Não foi possível enviar seu cadastro"); return; }
-    await refreshStatus();
+    setBusy(false);
+    if (reg.data === "aprovado") { toast.info("Este celular já tem cadastro aprovado. Use Login."); setLoginPhone(form.whatsapp); setStep("login"); return; }
+    setStep("pending");
+  }
+
+  async function login() {
+    if (loginPhone.replace(/\D/g, "").length < 10) { toast.error("Informe seu celular"); return; }
+    setBusy(true);
+    await refreshStatus(loginPhone);
     setBusy(false);
   }
 
-  async function refreshStatus() {
-    const { data, error } = await supabase.rpc("customer_status", { _whatsapp: form.whatsapp });
+  async function refreshStatus(phone: string) {
+    const { data, error } = await supabase.rpc("customer_status", { _whatsapp: phone });
     if (error) { toast.error("Não foi possível verificar seu cadastro"); return; }
     const st = data?.[0];
-    if (!st || st.status === "nao_cadastrado") { toast.error("Não foi possível localizar seu cadastro. Tente enviar novamente."); return; }
+    if (!st || st.status === "nao_cadastrado") { toast.error("Celular não cadastrado. Faça seu cadastro."); return; }
+    if (st.status === "pendente") { setStep("pending"); return; }
     const a = (st.allowed ?? "Iniciar") as Category;
-    setAllowed(a); setCategory(a); setParty(st.party ?? 1); setProfile(a);
+    setForm((f) => ({ ...f, whatsapp: phone })); setAllowed(a); setCategory(a); setParty(st.party ?? 1);
     setDates([]); setFormat(null);
     setStep("category");
   }
@@ -137,12 +147,12 @@ function BookingPage() {
   }
 
   function reset() {
-    setStep("form"); setDates([]); setFormat(null); setResult([]); schedule.refetch();
+    setStep("category"); setDates([]); setFormat(null); setResult([]); schedule.refetch();
   }
 
   const order: Step[] = ["form", "category", "dates", "review"];
   const stepIdx = step === "done" ? 4 : step === "format" ? 1 : order.indexOf(step);
-  const back: Partial<Record<Step, Step>> = { form: "information", category: "form", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
+  const back: Partial<Record<Step, Step>> = { information: "home", login: "home", pending: "home", form: "information", category: "home", format: "category", dates: category === "Iniciar" ? "format" : "category", review: "dates" };
 
   return (
     <div className="min-h-screen">
@@ -154,7 +164,7 @@ function BookingPage() {
         <div className="mx-auto mt-10 max-w-2xl">
           <h1 className="text-3xl font-semibold sm:text-4xl">Agende seu ciclo</h1>
           <p className="mt-2 text-primary-foreground/75">Cadastro, escolha das datas e confirmação. Pagamento no local.</p>
-          {step !== "done" && step !== "information" && (
+          {!["done", "information", "home", "login", "pending"].includes(step) && (
             <div className="mt-6 flex gap-1.5">
               {[0, 1, 2, 3].map((i) => <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= stepIdx ? "bg-accent" : "bg-primary-foreground/20"}`} />)}
             </div>
@@ -168,6 +178,38 @@ function BookingPage() {
             <Button variant="ghost" onClick={() => { const previous = back[step]; if (previous) setStep(previous); }} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground">
               <ArrowLeft className="size-4" /> Voltar
             </Button>
+          )}
+
+          {step === "home" && (
+            <section className="space-y-4 text-center">
+              <h2 className="text-xl font-semibold">Bem-vindo(a)</h2>
+              <p className="text-muted-foreground">Já tem cadastro aprovado? Entre para agendar. Ainda não tem? Faça seu cadastro.</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Button size="lg" className="h-14 text-base" onClick={() => setStep("login")}>Login</Button>
+                <Button size="lg" variant="outline" className="h-14 text-base" onClick={() => setStep("information")}>Cadastro</Button>
+              </div>
+            </section>
+          )}
+
+          {step === "login" && (
+            <section>
+              <h2 className="text-xl font-semibold">Login</h2>
+              <form className="mt-5 space-y-4" onSubmit={(e) => { e.preventDefault(); login(); }}>
+                <Field label="Celular (WhatsApp) cadastrado">
+                  <Input className="h-12 text-base" inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" value={loginPhone} onChange={(e) => setLoginPhone(maskPhone(e.target.value))} />
+                </Field>
+                <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Entrar</Button>
+              </form>
+            </section>
+          )}
+
+          {step === "pending" && (
+            <section className="text-center">
+              <CheckCircle2 className="mx-auto size-14 text-success" />
+              <h2 className="mt-3 text-2xl font-semibold">Cadastro enviado!</h2>
+              <p className="mt-2 text-muted-foreground">Aguarde a aprovação do seu cadastro. Depois de aprovado, use o Login para agendar.</p>
+              <Button variant="outline" size="lg" className="mt-6 w-full" onClick={() => setStep("home")}>Voltar ao início</Button>
+            </section>
           )}
 
           {step === "information" && <BookingInformation onContinue={() => setStep("form")} />}
@@ -186,6 +228,12 @@ function BookingPage() {
                   <Input className="h-12 text-base" type="email" autoComplete="email" maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </Field>
                 <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Ciclo</Label>
+                  <div className="grid grid-cols-2 gap-2" role="radiogroup">
+                    {(["Iniciar", "P1", "P2", "Aresta"] as Category[]).map((c) => <FormatCard key={c} active={regCycle === c} onClick={() => setRegCycle(c)} title={c === "Iniciar" ? "Iniciar (i1, i2, i3)" : c} desc="" />)}
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label>Dependentes (opcional)</Label>
                   {deps.map((d, i) => (
                     <div key={i} className="flex gap-2">
@@ -197,7 +245,7 @@ function BookingPage() {
                   {errors["deps"] && <p className="text-sm text-destructive">{errors["deps"]}</p>}
                   {deps.length < 9 && <Button type="button" variant="outline" size="sm" onClick={() => setDeps([...deps, ""])}>+ Adicionar dependente</Button>}
                 </div>
-                <p className="text-xs text-muted-foreground">Após enviar, você já pode escolher seu ciclo e agendar. Se já tem cadastro, informe o mesmo celular.</p>
+                <p className="text-xs text-muted-foreground">Após enviar, aguarde a aprovação do seu cadastro. Depois, entre pelo Login para agendar.</p>
                 <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Enviar cadastro</Button>
               </form>
             </section>
@@ -313,7 +361,7 @@ function BookingPage() {
           )}
         </div>
 
-        <MyBooking onReschedule={() => { setStep("form"); setDates([]); }} />
+        <MyBooking onReschedule={() => { setDates([]); setStep(allowed ? "category" : "login"); }} />
       </main>
     </div>
   );
@@ -352,7 +400,7 @@ function MyBooking({ onReschedule }: { onReschedule: () => void }) {
 
 function FormatCard({ active, onClick, icon, title, desc }: { active: boolean; onClick: () => void; icon?: React.ReactNode; title: string; desc: string }) {
   return (
-    <button role="radio" aria-checked={active} onClick={onClick}
+    <button type="button" role="radio" aria-checked={active} onClick={onClick}
       className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition ${active ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"}`}>
       {icon && <span className="text-primary">{icon}</span>}
       <span><span className="block font-semibold">{title}</span><span className="text-sm text-muted-foreground">{desc}</span></span>

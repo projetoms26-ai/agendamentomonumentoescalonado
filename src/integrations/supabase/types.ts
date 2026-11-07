@@ -111,6 +111,7 @@ export type Database = {
           full_name: string
           id: string
           last_activity_date: string | null
+          requested_cycle: string | null
           whatsapp: string
         }
         Insert: {
@@ -122,6 +123,7 @@ export type Database = {
           full_name: string
           id?: string
           last_activity_date?: string | null
+          requested_cycle?: string | null
           whatsapp: string
         }
         Update: {
@@ -133,6 +135,7 @@ export type Database = {
           full_name?: string
           id?: string
           last_activity_date?: string | null
+          requested_cycle?: string | null
           whatsapp?: string
         }
         Relationships: []
@@ -348,6 +351,20 @@ export type Database = {
           cycle: string
         }[]
       }
+      book_periods_core: {
+        Args: {
+          _category: string
+          _dates: string[]
+          _format: string
+          _periods: string[]
+          _whatsapp: string
+        }
+        Returns: {
+          booking_date: string
+          code: string
+          cycle: string
+        }[]
+      }
       claim_first_admin: { Args: never; Returns: boolean }
       create_booking:
         | {
@@ -433,15 +450,26 @@ export type Database = {
         Returns: boolean
       }
       lookup_profile: { Args: { _whatsapp: string }; Returns: string }
-      register_customer: {
-        Args: {
-          _dependents: string[]
-          _email: string
-          _name: string
-          _whatsapp: string
-        }
-        Returns: string
-      }
+      register_customer:
+        | {
+            Args: {
+              _dependents: string[]
+              _email: string
+              _name: string
+              _whatsapp: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _cycle: string
+              _dependents: string[]
+              _email: string
+              _name: string
+              _whatsapp: string
+            }
+            Returns: string
+          }
     }
     Enums: {
       app_role: "admin"

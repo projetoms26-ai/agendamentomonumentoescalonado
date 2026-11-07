@@ -34,8 +34,8 @@ function Cadastros() {
     },
   });
   const save = useMutation({
-    mutationFn: async (v: { id: string; cycle: string | null; confirmed: boolean }) => {
-      const { error } = await supabase.from("customers").update({ cycle: v.cycle, confirmed: v.confirmed }).eq("id", v.id);
+    mutationFn: async (v: { id: string; cycle: string | null; confirmed: boolean; dependents?: string[] }) => {
+      const { error } = await supabase.from("customers").update({ cycle: v.cycle, confirmed: v.confirmed, ...(v.dependents ? { dependents: v.dependents } : {}) }).eq("id", v.id);
       if (error) throw error;
     },
     onSuccess: () => { toast.success("Cadastro atualizado"); qc.invalidateQueries({ queryKey: ["customers"] }); qc.invalidateQueries({ queryKey: ["pending-count"] }); },
@@ -56,7 +56,7 @@ function Cadastros() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-xl font-semibold sm:text-2xl">Cadastros</h1>
-      <p className="mt-1 text-sm text-muted-foreground">O agendamento está liberado após o cadastro. A conferência administrativa e o ajuste do ciclo continuam disponíveis.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Confirme o cadastro e defina o ciclo para liberar o agendamento.</p>
       <div className="mt-5 flex flex-wrap gap-2">
         <Input className="max-w-xs" placeholder="Buscar por nome ou celular" value={q} onChange={(e) => setQ(e.target.value)} />
         <Button variant={onlyPending ? "default" : "outline"} onClick={() => setOnlyPending(true)}>A confirmar</Button>
@@ -66,15 +66,15 @@ function Cadastros() {
         <p className="mt-6 rounded-xl border bg-card p-6 text-muted-foreground">{onlyPending ? "Nenhum cadastro aguardando confirmação." : "Nenhum cadastro encontrado."}</p>
       ) : (
         <div className="mt-6 space-y-2">
-          {rows.map((c) => <Row key={c.id} c={c} busy={save.isPending || del.isPending} onSave={(cycle, confirmed) => save.mutate({ id: c.id, cycle, confirmed })} onDelete={() => del.mutate(c.id)} />)}
+          {rows.map((c) => <Row key={c.id} c={c} busy={save.isPending || del.isPending} onSave={(cycle, confirmed) => save.mutate({ id: c.id, cycle, confirmed })} onRemoveDep={(i) => save.mutate({ id: c.id, cycle: c.cycle, confirmed: c.confirmed, dependents: c.dependents.filter((_, j) => j !== i) })} onDelete={() => del.mutate(c.id)} />)}
         </div>
       )}
     </div>
   );
 }
 
-function Row({ c, busy, onSave, onDelete }: { c: { id: string; full_name: string; whatsapp: string; cycle: string | null; confirmed: boolean; last_activity_date: string | null; dependents: string[] }; busy: boolean; onSave: (cycle: string | null, confirmed: boolean) => void; onDelete: () => void }) {
-  const [cycle, setCycle] = useState(c.cycle ?? "");
+function Row({ c, busy, onSave, onDelete, onRemoveDep }: { c: { id: string; full_name: string; whatsapp: string; cycle: string | null; requested_cycle: string | null; confirmed: boolean; last_activity_date: string | null; dependents: string[] }; busy: boolean; onSave: (cycle: string | null, confirmed: boolean) => void; onDelete: () => void; onRemoveDep: (i: number) => void }) {
+  const [cycle, setCycle] = useState(c.cycle ?? (c.requested_cycle && c.requested_cycle !== "Iniciar" ? c.requested_cycle : ""));
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -82,7 +82,11 @@ function Row({ c, busy, onSave, onDelete }: { c: { id: string; full_name: string
         <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${c.confirmed ? "bg-success/15 text-success border-success/30" : "bg-warning/20 border-warning/50"}`}>{c.confirmed ? "Confirmado" : "A confirmar"}</span>
       </div>
       <a href={`https://wa.me/55${c.whatsapp}`} target="_blank" rel="noreferrer" className="mt-0.5 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><Phone className="size-3.5" /> {maskPhone(c.whatsapp)}</a>
-      <p className="text-sm text-muted-foreground">Dependentes: {c.dependents?.length ? c.dependents.join(", ") : "nenhum"}</p>
+      <p className="text-sm text-muted-foreground">Ciclo escolhido no cadastro: {c.requested_cycle ?? "—"}</p>
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">Dependentes: {c.dependents?.length ? c.dependents.map((d, i) => (
+        <span key={i} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5">{d}
+          <button type="button" aria-label={`Excluir dependente ${d}`} disabled={busy} className="text-destructive" onClick={() => confirm(`Excluir o dependente ${d}?`) && onRemoveDep(i)}><Trash2 className="size-3.5" /></button>
+        </span>)) : "nenhum"}</div>
       <p className="text-sm text-muted-foreground">Última atividade: {c.last_activity_date ? fmtDate(c.last_activity_date) : "—"}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <label className="text-sm font-medium" htmlFor={`cy-${c.id}`}>Ciclo atual</label>
