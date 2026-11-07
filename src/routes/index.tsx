@@ -163,7 +163,7 @@ function BookingPage() {
         </div>
         <div className="mx-auto mt-10 max-w-2xl">
           <h1 className="text-3xl font-semibold sm:text-4xl">Agende seu ciclo</h1>
-          <p className="mt-2 text-primary-foreground/75">Cadastro, escolha das datas e confirmação. Pagamento no local.</p>
+          <p className="mt-2 text-primary-foreground/75">Faça seu cadastro, aguarde a aprovação e escolha a melhor data para você.</p>
           {!["done", "information", "home", "login", "pending"].includes(step) && (
             <div className="mt-6 flex gap-1.5">
               {[0, 1, 2, 3].map((i) => <div key={i} className={`h-1.5 flex-1 rounded-full ${i <= stepIdx ? "bg-accent" : "bg-primary-foreground/20"}`} />)}
@@ -182,11 +182,11 @@ function BookingPage() {
 
           {step === "home" && (
             <section className="space-y-4 text-center">
-              <h2 className="text-xl font-semibold">Bem-vindo(a)</h2>
-              <p className="text-muted-foreground">Já tem cadastro aprovado? Entre para agendar. Ainda não tem? Faça seu cadastro.</p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Button size="lg" className="h-14 text-base" onClick={() => setStep("login")}>Login</Button>
-                <Button size="lg" variant="outline" className="h-14 text-base" onClick={() => setStep("information")}>Cadastro</Button>
+              <h2 className="text-2xl font-semibold">Bem-vindo(a)!</h2>
+              <p className="text-muted-foreground">Você já tem cadastro aprovado?</p>
+              <div className="grid gap-3">
+                <Button size="lg" className="h-14 text-base" onClick={() => setStep("login")}>Entrar e agendar</Button>
+                <Button size="lg" variant="outline" className="h-14 text-base" onClick={() => setStep("information")}>Criar meu cadastro</Button>
               </div>
             </section>
           )}
@@ -361,7 +361,9 @@ function BookingPage() {
           )}
         </div>
 
-        <MyBooking onReschedule={() => { setDates([]); setStep(allowed ? "category" : "login"); }} />
+        {allowed && ["category", "format", "dates", "review", "done"].includes(step) && (
+          <MyBooking onReschedule={() => { setDates([]); setStep("category"); }} />
+        )}
       </main>
     </div>
   );

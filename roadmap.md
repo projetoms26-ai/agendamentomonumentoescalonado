@@ -4,3 +4,4 @@
 - [x] Exibir informações de status, critérios, tempos e fotos antes do cadastro e verificar acesso ao formulário.
 - [x] Acrescentar etapas e regras de transição informativas antes do cadastro e verificar a apresentação.
 - [x] Atualizar o nome principal para App MME e incluir logo de pirâmide com ícone do navegador.
+- [ ] Ajustar a entrada conforme imagem e exibir Minha reserva somente após login aprovado; verificar tela inicial, cadastro e acesso.
