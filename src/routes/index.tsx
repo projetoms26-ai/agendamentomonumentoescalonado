@@ -45,6 +45,7 @@ function BookingPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [regCycle, setRegCycle] = useState<Category>("Iniciar");
   const [loginPhone, setLoginPhone] = useState("");
+  const [showRegistrationGuide, setShowRegistrationGuide] = useState(false);
   const [category, setCategory] = useState<Category>("Iniciar");
   const [format, setFormat] = useState<IniciarFormat | null>(null);
   const [choices, setChoices] = useState<ScheduleChoice[]>([]);
@@ -94,6 +95,7 @@ function BookingPage() {
     if (reg.error) { setBusy(false); toast.error(reg.error.message || "Não foi possível enviar seu cadastro"); return; }
     setBusy(false);
     if (reg.data === "aprovado") { toast.info("Este celular já tem cadastro aprovado. Use Login."); setLoginPhone(form.whatsapp); setStep("login"); return; }
+    setShowRegistrationGuide(true);
     setStep("pending");
   }
 
@@ -109,7 +111,7 @@ function BookingPage() {
     if (error) { toast.error("Não foi possível verificar seu cadastro"); return; }
     const st = data?.[0];
     if (!st || st.status === "nao_cadastrado") { toast.error("Celular não cadastrado. Faça seu cadastro."); return; }
-    if (st.status === "pendente") { setStep("pending"); return; }
+    if (st.status === "pendente") { setShowRegistrationGuide(false); setStep("pending"); return; }
     const a = (st.allowed ?? "Iniciar") as Category;
     setForm((f) => ({ ...f, whatsapp: phone })); setAllowed(a); setCategory(a); setParty(st.party ?? 1);
     setDates([]); setFormat(null);
@@ -208,6 +210,24 @@ function BookingPage() {
               <CheckCircle2 className="mx-auto size-14 text-success" />
               <h2 className="mt-3 text-2xl font-semibold">Cadastro enviado!</h2>
               <p className="mt-2 text-muted-foreground">Aguarde a aprovação do seu cadastro. Depois de aprovado, use o Login para agendar.</p>
+              {showRegistrationGuide && (
+                <div className="mt-8 text-left">
+                  <h3 className="text-xl font-semibold">Selecione o seu ciclo:</h3>
+                  <dl className="mt-4 divide-y">
+                    {[
+                      { title: "Iniciante", description: "Primeira vez que faz o treinamento, ou não tenha concluído os 3 ciclos (IC1, IC2, IC3) de 3 min. cada." },
+                      { title: "P1", description: "Segunda vez que faz o treinamento, após fazer o ciclo iniciante e não sair o ultra dourado na foto, repete 1 ciclo de 3 min." },
+                      { title: "P2", description: "Terceira vez ou mais que faz o treinamento, após fazer o ciclo P1 e não sair o ultra dourado na foto, repete 1 ciclo de 1 min. e 30 s." },
+                      { title: "Arestas", description: "Após ter saído o ultra dourado na foto em qualquer etapa." },
+                    ].map((item) => (
+                      <div key={item.title} className="py-4">
+                        <dt className="font-semibold text-primary">{item.title}</dt>
+                        <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
               <Button variant="outline" size="lg" className="mt-6 w-full" onClick={() => setStep("home")}>Voltar ao início</Button>
             </section>
           )}
