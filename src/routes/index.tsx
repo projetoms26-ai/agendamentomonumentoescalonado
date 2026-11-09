@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
-import { BookingInformation } from "@/components/BookingInformation";
+import { BookingInformation, CycleGuidance } from "@/components/BookingInformation";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
 import {
   addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles, FORMAT_LABEL, manhaTardeOk,
@@ -212,20 +212,7 @@ function BookingPage() {
               <p className="mt-2 text-muted-foreground">Aguarde a aprovação do seu cadastro. Depois de aprovado, use o Login para agendar.</p>
               {showRegistrationGuide && (
                 <div className="mt-8 text-left">
-                  <h3 className="text-xl font-semibold">Selecione o seu ciclo:</h3>
-                  <dl className="mt-4 divide-y">
-                    {[
-                      { title: "Iniciante", description: "Primeira vez que faz o treinamento, ou não tenha concluído os 3 ciclos (IC1, IC2, IC3) de 3 min. cada." },
-                      { title: "P1", description: "Segunda vez que faz o treinamento, após fazer o ciclo iniciante e não sair o ultra dourado na foto, repete 1 ciclo de 3 min." },
-                      { title: "P2", description: "Terceira vez ou mais que faz o treinamento, após fazer o ciclo P1 e não sair o ultra dourado na foto, repete 1 ciclo de 1 min. e 30 s." },
-                      { title: "Arestas", description: "Após ter saído o ultra dourado na foto em qualquer etapa." },
-                    ].map((item) => (
-                      <div key={item.title} className="py-4">
-                        <dt className="font-semibold text-primary">{item.title}</dt>
-                        <dd className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</dd>
-                      </div>
-                    ))}
-                  </dl>
+                  <CycleGuidance />
                 </div>
               )}
               <Button variant="outline" size="lg" className="mt-6 w-full" onClick={() => setStep("home")}>Voltar ao início</Button>

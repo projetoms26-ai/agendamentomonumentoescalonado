@@ -6,3 +6,4 @@
 - [x] Atualizar o nome principal para App MME e incluir logo de pirâmide com ícone do navegador.
 - [ ] Ajustar a entrada conforme imagem e exibir Minha reserva somente após login aprovado; verificar tela inicial, cadastro e acesso.
 - [x] Mostrar as orientações da imagem após enviar o cadastro, mantendo a aprovação; apresentação verificada no celular e computador com envio simulado, sem gravar dados.
+- [x] Substituir as informações antigas antes do cadastro pelas orientações de Iniciante, P1, P2 e Arestas da imagem; acesso ao formulário verificado em 390, 950 e 1280 px.
