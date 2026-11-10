@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
 import { BookingInformation, CycleGuidance } from "@/components/BookingInformation";
+import { AttendanceHistory } from "@/components/AttendanceHistory";
 import { customerRegistrationSchema } from "@/lib/customer-access";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
 import {
@@ -422,6 +423,7 @@ function MyBooking({ phone, onReschedule }: { phone: string; onReschedule: () =>
     setCode("");
   }
   return (
+    <>
     <section className="rounded-2xl border bg-card p-5 sm:p-7">
       <h2 className="text-lg font-semibold">Minha reserva</h2>
       <p className="text-sm text-muted-foreground">Avise sua chegada, cancele ou reagende.</p>
@@ -435,6 +437,8 @@ function MyBooking({ phone, onReschedule }: { phone: string; onReschedule: () =>
         <Button variant="outline" disabled={busy} onClick={() => confirm("Cancelar esta reserva?") && act("cancelado")}>Cancelar</Button>
       </div>
     </section>
+      <div className="mt-5"><AttendanceHistory /></div>
+    </>
   );
 }
 

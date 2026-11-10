@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { fmtDate, hhmm, WEEKDAYS } from "@/lib/booking";
 import { ScheduleDays } from "@/components/admin/ScheduleDays";
+import { AdminInvite } from "@/components/admin/AdminInvite";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes")({
   head: () => ({ meta: [
@@ -71,6 +72,7 @@ function SettingsPage() {
       <h1 className="text-2xl font-semibold sm:text-3xl">Configurações</h1>
 
       <ScheduleDays />
+      <AdminInvite />
 
       <Card title="Capacidade e dias">
         <div className="grid gap-4 sm:grid-cols-2">

@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_history: {
+        Row: { booking_id: string; created_at: string; cycle_performed: string; id: string; next_cycle: string | null; next_duration_seconds: number | null; recorded_by: string; ultra_dourado: boolean }
+        Insert: { booking_id: string; created_at?: string; cycle_performed: string; id?: string; next_cycle?: string | null; next_duration_seconds?: number | null; recorded_by: string; ultra_dourado: boolean }
+        Update: { booking_id?: string; created_at?: string; cycle_performed?: string; id?: string; next_cycle?: string | null; next_duration_seconds?: number | null; recorded_by?: string; ultra_dourado?: boolean }
+        Relationships: []
+      }
+      pending_admin_invites: {
+        Row: { accepted_at: string | null; accepted_user_id: string | null; created_at: string; email: string; id: string; invited_by: string }
+        Insert: { accepted_at?: string | null; accepted_user_id?: string | null; created_at?: string; email: string; id?: string; invited_by: string }
+        Update: { accepted_at?: string | null; accepted_user_id?: string | null; created_at?: string; email?: string; id?: string; invited_by?: string }
+        Relationships: []
+      }
       blocked_dates: {
         Row: {
           created_at: string
@@ -310,6 +322,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_my_attendance_history: {
+        Args: Record<PropertyKey, never>
+        Returns: { booking_code: string; booking_date: string; booking_id: string; booking_status: Database["public"]["Enums"]["booking_status"]; cycle_performed: string; history_id: string; next_cycle: string | null; next_duration_seconds: number | null; recorded_at: string; slot_time: string; ultra_dourado: boolean }[]
+      }
       book_approved: {
         Args: {
           _category: string
