@@ -107,12 +107,7 @@ function BookingPage() {
       setConfirmationNeeded(!data.session); setSignedIn(!!data.session);
       setForm((f) => ({ ...f, password: "" }));
       setLoginEmail(r.data.email); setShowRegistrationGuide(true); setStep("pending");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Não foi possível enviar seu cadastro";
-      toast.error(message === "Database error saving new user"
-        ? "Não foi possível salvar seu cadastro. Se este telefone já foi usado, entre com o e-mail associado ou peça à equipe para verificar o vínculo. Se for um cadastro novo, a equipe precisa verificar os logs do Supabase."
-        : message);
-    }
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível enviar seu cadastro"); }
     finally { setBusy(false); }
   }
 
