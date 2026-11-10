@@ -103,6 +103,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          auth_user_id: string | null
           confirmed: boolean
           created_at: string
           cycle: string | null
@@ -115,6 +116,7 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          auth_user_id?: string | null
           confirmed?: boolean
           created_at?: string
           cycle?: string | null
@@ -127,6 +129,7 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          auth_user_id?: string | null
           confirmed?: boolean
           created_at?: string
           cycle?: string | null
@@ -137,6 +140,21 @@ export type Database = {
           last_activity_date?: string | null
           requested_cycle?: string | null
           whatsapp?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          display_name: string
+          id: string
+        }
+        Insert: {
+          display_name?: string
+          id: string
+        }
+        Update: {
+          display_name?: string
+          id?: string
         }
         Relationships: []
       }
@@ -450,6 +468,16 @@ export type Database = {
         Returns: boolean
       }
       lookup_profile: { Args: { _whatsapp: string }; Returns: string }
+      my_customer_status: {
+        Args: never
+        Returns: {
+          allowed: string
+          full_name: string
+          party: number
+          status: string
+          whatsapp: string
+        }[]
+      }
       register_customer:
         | {
             Args: {

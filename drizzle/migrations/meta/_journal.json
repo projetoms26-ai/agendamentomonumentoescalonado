@@ -99,6 +99,13 @@
       "when": 1794064223679,
       "tag": "0013_require_approval_login_flow",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794308521852,
+      "tag": "0014_customer_email_password_identity",
+      "breakpoints": true
     }
   ]
 }

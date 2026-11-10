@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { z } from "zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, Check, CheckCircle2, Loader2, Sun, Sunset, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
 import { BookingInformation, CycleGuidance } from "@/components/BookingInformation";
+import { customerRegistrationSchema } from "@/lib/customer-access";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
 import {
   addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles, FORMAT_LABEL, manhaTardeOk,
@@ -30,21 +30,22 @@ export const Route = createFileRoute("/")({
   component: BookingPage,
 });
 
-const formSchema = z.object({
-  name: z.string().trim().min(3, "Informe seu nome completo").max(120),
-  whatsapp: z.string().refine((v) => { const n = v.replace(/\D/g, ""); return n.length >= 10 && n.length <= 11; }, "Celular inválido"),
-  email: z.string().trim().max(255).email("E-mail inválido").or(z.literal("")),
-});
+const formSchema = customerRegistrationSchema;
 
 type Step = "home" | "login" | "pending" | "information" | "form" | "category" | "format" | "dates" | "review" | "done";
 type Category = "Iniciar" | "P1" | "P2" | "Aresta";
 
 function BookingPage() {
   const [step, setStep] = useState<Step>("home");
-  const [form, setForm] = useState({ name: "", whatsapp: "", email: "" });
+  const qc = useQueryClient();
+  const [form, setForm] = useState({ name: "", whatsapp: "", email: "", password: "" });
+  const [signedIn, setSignedIn] = useState(false);
+  const [confirmationNeeded, setConfirmationNeeded] = useState(false);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user)); }, []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [regCycle, setRegCycle] = useState<Category>("Iniciar");
-  const [loginPhone, setLoginPhone] = useState("");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
   const [showRegistrationGuide, setShowRegistrationGuide] = useState(false);
   const [category, setCategory] = useState<Category>("Iniciar");
   const [format, setFormat] = useState<IniciarFormat | null>(null);
@@ -91,31 +92,60 @@ function BookingPage() {
     const depNames = deps.map((d) => d.trim()).filter(Boolean);
     if (deps.some((d) => d.trim().length > 0 && d.trim().length < 2) || deps.length !== depNames.length) { setErrors({ deps: "Preencha o nome de cada dependente ou remova o campo vazio" }); return; }
     setErrors({}); setBusy(true);
-    const reg = await supabase.rpc("register_customer", { _name: form.name, _whatsapp: form.whatsapp, _email: form.email, _dependents: depNames, _cycle: regCycle });
-    if (reg.error) { setBusy(false); toast.error(reg.error.message || "Não foi possível enviar seu cadastro"); return; }
-    setBusy(false);
-    if (reg.data === "aprovado") { toast.info("Este celular já tem cadastro aprovado. Use Login."); setLoginPhone(form.whatsapp); setStep("login"); return; }
-    setShowRegistrationGuide(true);
-    setStep("pending");
+    try {
+      await qc.cancelQueries(); qc.clear();
+      await supabase.auth.signOut(); setSignedIn(false); setAllowed(null);
+      const { data, error } = await supabase.auth.signUp({
+        email: r.data.email, password: r.data.password,
+        options: { emailRedirectTo: window.location.origin, data: {
+          registration_kind: "customer", full_name: r.data.name, whatsapp: r.data.whatsapp.replace(/\D/g, ""),
+          dependents: depNames, requested_cycle: regCycle,
+        } },
+      });
+      if (error) throw error;
+      setConfirmationNeeded(!data.session); setSignedIn(!!data.session);
+      setForm((f) => ({ ...f, password: "" }));
+      setLoginEmail(r.data.email); setShowRegistrationGuide(true); setStep("pending");
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível enviar seu cadastro"); }
+    finally { setBusy(false); }
   }
 
   async function login() {
-    if (loginPhone.replace(/\D/g, "").length < 10) { toast.error("Informe seu celular"); return; }
+    if (!loginEmail.trim() || !loginPassword) { toast.error("Informe seu e-mail e senha"); return; }
     setBusy(true);
-    await refreshStatus(loginPhone);
-    setBusy(false);
+    try {
+      await qc.cancelQueries(); qc.clear();
+      const { error } = await supabase.auth.signInWithPassword({ email: loginEmail.trim(), password: loginPassword });
+      if (error) throw error;
+      setSignedIn(true); setLoginPassword(""); setConfirmationNeeded(false);
+      await refreshStatus();
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível entrar"); }
+    finally { setBusy(false); }
   }
 
-  async function refreshStatus(phone: string) {
-    const { data, error } = await supabase.rpc("customer_status", { _whatsapp: phone });
+  async function refreshStatus() {
+    const { data, error } = await supabase.rpc("my_customer_status");
     if (error) { toast.error("Não foi possível verificar seu cadastro"); return; }
     const st = data?.[0];
-    if (!st || st.status === "nao_cadastrado") { toast.error("Celular não cadastrado. Faça seu cadastro."); return; }
+    if (!st || st.status === "nao_cadastrado") { toast.error("Não encontramos um cadastro vinculado a esta conta. Procure a equipe."); return; }
     if (st.status === "pendente") { setShowRegistrationGuide(false); setStep("pending"); return; }
     const a = (st.allowed ?? "Iniciar") as Category;
-    setForm((f) => ({ ...f, whatsapp: phone })); setAllowed(a); setCategory(a); setParty(st.party ?? 1);
-    setDates([]); setFormat(null);
-    setStep("category");
+    setForm((f) => ({ ...f, name: st.full_name ?? "", whatsapp: st.whatsapp ?? "" })); setAllowed(a); setCategory(a); setParty(st.party ?? 1);
+    setDates([]); setFormat(null); setStep("category");
+  }
+
+  async function signOut() {
+    await qc.cancelQueries(); qc.clear(); await supabase.auth.signOut();
+    setSignedIn(false); setAllowed(null); setForm({ name: "", whatsapp: "", email: "", password: "" });
+    setResult([]); setChoices([]); setStep("home");
+  }
+
+  async function forgotPassword() {
+    if (!loginEmail.trim()) { toast.error("Informe seu e-mail para recuperar a senha"); return; }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail.trim(), { redirectTo: `${window.location.origin}/reset-password` });
+    setBusy(false);
+    if (error) toast.error(error.message); else toast.success("Confira seu e-mail para redefinir a senha.");
   }
 
   function toggleDate(choice: ScheduleChoice) {
@@ -161,7 +191,7 @@ function BookingPage() {
       <header className="hero-band px-5 pb-16 pt-6">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <Brand light />
-          <Link to="/admin" className="text-sm text-primary-foreground/70 hover:text-primary-foreground">Área restrita</Link>
+          <div className="flex items-center gap-3"><Link to="/admin" className="text-sm text-primary-foreground/70 hover:text-primary-foreground">Área restrita</Link>{signedIn && <Button variant="secondary" size="sm" onClick={signOut}>Sair</Button>}</div>
         </div>
         <div className="mx-auto mt-10 max-w-2xl">
           <h1 className="text-3xl font-semibold sm:text-4xl">Agende seu ciclo</h1>
@@ -187,7 +217,7 @@ function BookingPage() {
               <h2 className="text-2xl font-semibold">Bem-vindo(a)!</h2>
               <p className="text-muted-foreground">Você já tem cadastro aprovado?</p>
               <div className="grid gap-3">
-                <Button size="lg" className="h-14 text-base" onClick={() => setStep("login")}>Entrar e agendar</Button>
+                <Button size="lg" className="h-14 text-base" onClick={() => signedIn ? refreshStatus() : setStep("login")}>{signedIn ? "Acessar meu cadastro" : "Entrar e agendar"}</Button>
                 <Button size="lg" variant="outline" className="h-14 text-base" onClick={() => setStep("information")}>Criar meu cadastro</Button>
               </div>
             </section>
@@ -197,9 +227,9 @@ function BookingPage() {
             <section>
               <h2 className="text-xl font-semibold">Login</h2>
               <form className="mt-5 space-y-4" onSubmit={(e) => { e.preventDefault(); login(); }}>
-                <Field label="Celular (WhatsApp) cadastrado">
-                  <Input className="h-12 text-base" inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" value={loginPhone} onChange={(e) => setLoginPhone(maskPhone(e.target.value))} />
-                </Field>
+                <Field label="E-mail cadastrado"><Input aria-label="E-mail cadastrado" className="h-12 text-base" type="email" autoComplete="email" required value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} /></Field>
+                <Field label="Senha"><Input aria-label="Senha" className="h-12 text-base" type="password" autoComplete="current-password" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} /></Field>
+                <Button type="button" variant="link" disabled={busy} onClick={forgotPassword}>Esqueci minha senha</Button>
                 <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Entrar</Button>
               </form>
             </section>
@@ -209,7 +239,8 @@ function BookingPage() {
             <section className="text-center">
               <CheckCircle2 className="mx-auto size-14 text-success" />
               <h2 className="mt-3 text-2xl font-semibold">Cadastro enviado!</h2>
-              <p className="mt-2 text-muted-foreground">Aguarde a aprovação do seu cadastro. Depois de aprovado, use o Login para agendar.</p>
+              <p className="mt-2 text-muted-foreground">Aguarde a aprovação do seu cadastro. Depois de aprovado, faça login com o e-mail e a senha que você criou no cadastro para agendar.</p>
+              {confirmationNeeded && <p className="mt-3 text-sm text-muted-foreground">Confirme também seu e-mail pelo link enviado. A confirmação do e-mail não substitui a aprovação do cadastro.</p>}
               {showRegistrationGuide && (
                 <div className="mt-8 text-left">
                   <CycleGuidance />
@@ -231,9 +262,10 @@ function BookingPage() {
                 <Field label="Celular (WhatsApp)" error={errors["whatsapp"]}>
                   <Input className="h-12 text-base" inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: maskPhone(e.target.value) })} />
                 </Field>
-                <Field label="E-mail (opcional)" error={errors["email"]}>
-                  <Input className="h-12 text-base" type="email" autoComplete="email" maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Field label="E-mail" error={errors["email"]}>
+                  <Input className="h-12 text-base" aria-label="E-mail" type="email" required autoComplete="email" maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                 </Field>
+                <Field label="Crie sua senha" error={errors["password"]}><Input aria-label="Crie sua senha" className="h-12 text-base" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Ciclo</Label>
                   <div className="grid grid-cols-2 gap-2" role="radiogroup">
@@ -252,7 +284,7 @@ function BookingPage() {
                   {errors["deps"] && <p className="text-sm text-destructive">{errors["deps"]}</p>}
                   {deps.length < 9 && <Button type="button" variant="outline" size="sm" onClick={() => setDeps([...deps, ""])}>+ Adicionar dependente</Button>}
                 </div>
-                <p className="text-xs text-muted-foreground">Após enviar, aguarde a aprovação do seu cadastro. Depois, entre pelo Login para agendar.</p>
+                <p className="text-xs text-muted-foreground">Após enviar, aguarde a aprovação do seu cadastro. Depois, faça login com o e-mail e a senha criados aqui para agendar.</p>
                 <Button type="submit" size="lg" className="w-full text-base" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Enviar cadastro</Button>
               </form>
             </section>
@@ -369,16 +401,15 @@ function BookingPage() {
         </div>
 
         {allowed && ["category", "format", "dates", "review", "done"].includes(step) && (
-          <MyBooking onReschedule={() => { setDates([]); setStep("category"); }} />
+          <MyBooking phone={form.whatsapp} onReschedule={() => { setDates([]); setStep("category"); }} />
         )}
       </main>
     </div>
   );
 }
 
-function MyBooking({ onReschedule }: { onReschedule: () => void }) {
+function MyBooking({ phone, onReschedule }: { phone: string; onReschedule: () => void }) {
   const [code, setCode] = useState("");
-  const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   async function act(action: "chegou" | "cancelado" | "reagendou") {
     if (code.trim().length < 6 || phone.replace(/\D/g, "").length < 10) { toast.error("Informe o código e o celular"); return; }
@@ -396,7 +427,7 @@ function MyBooking({ onReschedule }: { onReschedule: () => void }) {
       <p className="text-sm text-muted-foreground">Avise sua chegada, cancele ou reagende.</p>
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <Input className="h-11 font-mono uppercase" placeholder="Código" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
-        <Input className="h-11" inputMode="tel" placeholder="Celular" value={phone} onChange={(e) => setPhone(maskPhone(e.target.value))} />
+        <Input className="h-11" aria-label="Celular da reserva" value={maskPhone(phone)} readOnly />
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="outline" disabled={busy} onClick={() => act("chegou")}>Cheguei</Button>

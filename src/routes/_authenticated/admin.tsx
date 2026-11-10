@@ -6,7 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Brand } from "@/components/Brand";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Painel administrativo" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [
+    { title: "Painel administrativo — App MME" },
+    { name: "description", content: "Gestão de cadastros e agenda do App MME." },
+    { property: "og:title", content: "Painel administrativo — App MME" },
+    { property: "og:description", content: "Área da equipe para gestão dos ciclos do App MME." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: AdminLayout,
 });
 

@@ -39,7 +39,7 @@ function AuthPage() {
       if (error) { toast.error("E-mail ou senha incorretos"); return; }
       nav({ to: "/admin" });
     } else {
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + "/admin" } });
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
       setLoading(false);
       if (error) { toast.error(error.message); return; }
       if (data.session) nav({ to: "/admin" });
@@ -59,7 +59,7 @@ function AuthPage() {
           <button type="button" onClick={() => setMode(mode === "in" ? "up" : "in")} className="w-full text-sm text-muted-foreground hover:text-foreground">
             {mode === "in" ? "Primeiro acesso? Criar conta" : "Já tenho conta"}
           </button>
-          {mode === "up" && <p className="text-xs text-muted-foreground">A primeira conta criada vira administradora. As demais precisam ser liberadas.</p>}
+          {mode === "up" && <p className="text-xs text-muted-foreground">O acesso administrativo exige autorização da equipe.</p>}
         </form>
       </div>
     </div>

@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Phone, Trash2 } from "lucide-react";
+import { Check, Phone, Trash2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CYCLES, fmtDate, maskPhone } from "@/lib/booking";
+import { approvalWhatsAppUrl } from "@/lib/customer-access";
 
 export const Route = createFileRoute("/_authenticated/admin/cadastros")({
   head: () => ({ meta: [
@@ -75,6 +76,7 @@ function Cadastros() {
 
 function Row({ c, busy, onSave, onDelete, onRemoveDep }: { c: { id: string; full_name: string; whatsapp: string; cycle: string | null; requested_cycle: string | null; confirmed: boolean; last_activity_date: string | null; dependents: string[] }; busy: boolean; onSave: (cycle: string | null, confirmed: boolean) => void; onDelete: () => void; onRemoveDep: (i: number) => void }) {
   const [cycle, setCycle] = useState(c.cycle ?? (c.requested_cycle && c.requested_cycle !== "Iniciar" ? c.requested_cycle : ""));
+  const approvalLink = approvalWhatsAppUrl(c.whatsapp, c.full_name, "https://agendamentomonumentoescalonado.lovable.app");
   return (
     <div className="rounded-xl border bg-card p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -95,6 +97,7 @@ function Row({ c, busy, onSave, onDelete, onRemoveDep }: { c: { id: string; full
           {CYCLES.map((x) => <option key={x} value={x}>{x}</option>)}
         </select>
         <Button size="sm" disabled={busy} onClick={() => onSave(cycle || null, true)}><Check /> {c.confirmed ? "Salvar" : "Confirmar cadastro"}</Button>
+        {c.confirmed && approvalLink && <Button size="sm" variant="outline" asChild><a href={approvalLink} target="_blank" rel="noreferrer"><MessageCircle /> Avisar aprovação pelo WhatsApp</a></Button>}
         <Button size="sm" variant="outline" className="text-destructive" disabled={busy} onClick={() => confirm(`Apagar o cadastro de ${c.full_name}? Os agendamentos já feitos continuam na agenda.`) && onDelete()}><Trash2 /> Apagar</Button>
       </div>
     </div>
