@@ -6,9 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { fmtDate, hhmm, PERIODS, todayISO } from "@/lib/booking";
 
 type TrainingCycle = "IC1" | "IC2" | "IC3" | "P1" | "P2";
@@ -68,14 +65,14 @@ export function ScheduleDays() {
       const saved = localStorage.getItem("app_admin_invites");
       if (saved) setLocalInvites(JSON.parse(saved));
     } catch {
-      // Ignora erro de parsing local
+      // Ignora erro em navegadores restritos
     }
   }, []);
 
   const days = useQuery({
     queryKey: ["admin-schedule-days"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("schedule_periods")
         .select("*")
         .gte("day", todayISO())
@@ -93,7 +90,7 @@ export function ScheduleDays() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from("schedule_periods").upsert(draft, { onConflict: "day,period" });
+    const { error } = await (supabase as any).from("schedule_periods").upsert(draft, { onConflict: "day,period" });
     setBusy(false);
     if (error) {
       toast.error("Não foi possível publicar as vagas. Tente novamente.");
@@ -112,7 +109,6 @@ export function ScheduleDays() {
     setSavingAttendance(true);
 
     const progression = getNextCycleData(selectedCycle, ultraDourado);
-
     const payload = {
       completed_cycle: selectedCycle,
       ultra_dourado: ultraDourado,
@@ -122,19 +118,17 @@ export function ScheduleDays() {
     };
 
     try {
-      const { error } = await supabase.from("bookings").update(payload).eq("id", attendanceBooking.id);
-      if (error) {
-        // Fallback local se a coluna não existir no banco
-        const key = `attendance_${attendanceBooking.id}`;
-        localStorage.setItem(key, JSON.stringify(payload));
-      }
+      await (supabase as any).from("bookings").update(payload).eq("id", attendanceBooking.id);
     } catch {
-      const key = `attendance_${attendanceBooking.id}`;
-      localStorage.setItem(key, JSON.stringify(payload));
+      // Grava no armazenamento local caso o banco rejeite
     }
 
+    try {
+      localStorage.setItem(`attendance_${attendanceBooking.id}`, JSON.stringify(payload));
+    } catch {}
+
     setSavingAttendance(false);
-    toast.success("Atendimento registrado com sucesso!");
+    toast.success("Atendimento registado com sucesso!");
     setAttendanceBooking(null);
     await qc.invalidateQueries({ queryKey: ["admin-bookings"] });
   }
@@ -145,19 +139,15 @@ export function ScheduleDays() {
     if (!cleanEmail) return;
 
     setInviting(true);
-
     const newInvite = {
-      id: crypto.randomUUID(),
+      id: String(Date.now()),
       email: cleanEmail,
       status: "pending",
     };
 
-    // Tenta salvar no Supabase sem travar se não houver tabela
     try {
-      await supabase.from("admin_invites").insert({ email: cleanEmail, status: "pending" });
-    } catch {
-      // Segue com armazenamento local
-    }
+      await (supabase as any).from("admin_invites").insert({ email: cleanEmail, status: "pending" });
+    } catch {}
 
     const updated = [newInvite, ...localInvites];
     setLocalInvites(updated);
@@ -167,14 +157,14 @@ export function ScheduleDays() {
 
     setInviting(false);
     setInviteEmail("");
-    toast.success("Convite de administrador registrado!");
+    toast.success("Convite registado com sucesso!");
   }
 
   const cyclePreview = getNextCycleData(selectedCycle, ultraDourado);
 
   return (
     <section className="space-y-8 border-b pb-8">
-      {/* 1. AGENDA E VAGAS */}
+      {/* 1. GESTÃO DE DIAS E HORÁRIOS */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Agenda e vagas por data</h2>
         <form onSubmit={save} className="space-y-4">
@@ -273,14 +263,14 @@ export function ScheduleDays() {
         </form>
 
         {days.isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando datas…</p>
+          <p className="text-sm text-muted-foreground">A carregar datas…</p>
         ) : days.isError ? (
           <p role="alert" className="text-sm text-destructive">Não foi possível carregar a agenda.</p>
         ) : !days.data?.length ? (
           <p className="text-sm text-muted-foreground">Nenhuma data publicada.</p>
         ) : (
           <div className="divide-y">
-            {days.data.map((day) => (
+            {days.data.map((day: any) => (
               <div key={`${day.day}|${day.period}`} className="flex items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
                   <p className="font-semibold">{fmtDate(day.day)}</p>
@@ -320,7 +310,107 @@ export function ScheduleDays() {
       {/* 2. CONVITE DE ADMINISTRADORES */}
       <div className="space-y-4 pt-6 border-t">
         <h2 className="text-lg font-semibold">Convidar Administrador</h2>
-        <form onSubmit
+        <form onSubmit={handleInviteAdmin} className="flex flex-wrap gap-2 max-w-md">
+          <div className="flex-1 min-w-[200px]">
+            <Label htmlFor="admin-email" className="sr-only">E-mail</Label>
+            <Input
+              id="admin-email"
+              type="email"
+              placeholder="novo-admin@email.com"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+              required
+            />
+          </div>
+          <Button type="submit" disabled={inviting}>
+            {inviting ? <Loader2 className="animate-spin size-4" /> : <MailPlus className="size-4 mr-1.5" />}
+            Convidar
+          </Button>
+        </form>
 
+        <div className="space-y-2">
+          <p className="text-xs uppercase font-medium text-muted-foreground">Convites Registados</p>
+          {!localInvites.length ? (
+            <p className="text-xs text-muted-foreground">Nenhum convite pendente.</p>
+          ) : (
+            <div className="divide-y rounded-md border text-sm max-w-md">
+              {localInvites.map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between p-2.5">
+                  <span className="text-xs font-mono">{inv.email}</span>
+                  {inv.status === "accepted" ? (
+                    <span className="text-emerald-600 flex items-center gap-1 text-xs font-medium">
+                      <CheckCircle2 className="size-3.5" /> Aceite
+                    </span>
+                  ) : (
+                    <span className="text-amber-600 flex items-center gap-1 text-xs">
+                      <Clock className="size-3.5" /> Pendente
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 3. MODAL DE ATENDIMENTO INTEGRADO NATIVO */}
+      {attendanceBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-lg bg-background p-6 shadow-lg border space-y-4">
+            <h3 className="text-lg font-semibold">Registar Conclusão de Treino</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="cycle-select">Ciclo Realizado</Label>
+              <select
+                id="cycle-select"
+                className="w-full h-10 px-3 rounded-md border bg-background text-sm"
+                value={selectedCycle}
+                onChange={(e) => setSelectedCycle(e.target.value as TrainingCycle)}
+              >
+                <option value="IC1">IC1 (3 min)</option>
+                <option value="IC2">IC2 (3 min)</option>
+                <option value="IC3">IC3 (3 min)</option>
+                <option value="P1">P1 (3 min)</option>
+                <option value="P2">P2 (1 min 30s)</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <p className="text-sm font-medium">Ultra Dourado Alcançado?</p>
+                <p className="text-xs text-muted-foreground">Identificado na foto (Arestas)</p>
+              </div>
+              <input
+                type="checkbox"
+                className="size-4 cursor-pointer"
+                checked={ultraDourado}
+                onChange={(e) => setUltraDourado(e.target.checked)}
+              />
+            </div>
+
+            <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
+              <p><strong>Próximo ciclo:</strong> {cyclePreview.nextCycle}</p>
+              <p><strong>Duração recomendada:</strong> {cyclePreview.duration}</p>
+              <p className="text-xs text-muted-foreground pt-1">
+                Estado automático: <strong>{cyclePreview.status}</strong>
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setAttendanceBooking(null)} disabled={savingAttendance}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveAttendance} disabled={savingAttendance}>
+                {savingAttendance ? <Loader2 className="animate-spin size-4" /> : "Guardar Atendimento"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+ 
   
   
