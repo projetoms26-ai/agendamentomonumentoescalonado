@@ -1,3 +1,6 @@
+- [ ] Retomar cadastro e login com e-mail/senha, preservando ciclo, dependentes e aprovação.
+- [ ] Preparar aviso de aprovação pelo WhatsApp e configurar aviso por e-mail.
+- [ ] Verificar cadastro, acesso pendente/aprovado e notificações.
 - [ ] Permitir dois turnos na mesma data com capacidades independentes, preservando a agenda existente.
 - [ ] Atualizar publicação administrativa e escolha pública por data e turno.
 - [ ] Testar seleção, saldos e isolamento dos turnos.
