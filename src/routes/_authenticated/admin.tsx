@@ -47,7 +47,7 @@ function AdminLayout() {
   }
 
   if (role.isLoading) return <div className="grid min-h-screen place-items-center"><Loader2 className="size-6 animate-spin" /></div>;
-  if (!role.data)
+  //if (!role.data)
     return (
       <div className="grid min-h-screen place-items-center px-4 text-center">
         <div>
