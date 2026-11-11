@@ -11,10 +11,10 @@ import { Brand } from "@/components/Brand";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — Área administrativa" },
-      { name: "description", content: "Acesso restrito à equipe administrativa." },
-      { property: "og:title", content: "Área administrativa" },
-      { property: "og:description", content: "Acesso restrito à equipe administrativa." },
+      { title: "Entrar na administração — App MME" },
+      { name: "description", content: "Acesso da equipe administrativa do App MME." },
+      { property: "og:title", content: "Entrar na administração — App MME" },
+      { property: "og:description", content: "Acesso restrito à equipe do App MME." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },

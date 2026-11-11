@@ -8,12 +8,12 @@ import { Label } from "@/components/ui/label";
 import { attendanceSchema } from "@/lib/attendance";
 import { CYCLES } from "@/lib/booking";
 
-export function AttendanceRecord({ id, status }: { id: string; status: string }) {
+export function AttendanceRecord({ id, status, duration, nextCycle }: { id: string; status: string; duration: number | null; nextCycle: string | null }) {
   const qc = useQueryClient();
   const [result, setResult] = useState(["concluiu", "faltou", "repetir", "passou", "atendido", "nao_compareceu"].includes(status) ? status : "concluiu");
-  const [minutes, setMinutes] = useState("");
-  const [seconds, setSeconds] = useState("0");
-  const [next, setNext] = useState("");
+  const [minutes, setMinutes] = useState(duration === null ? "" : String(Math.floor(duration / 60)));
+  const [seconds, setSeconds] = useState(duration === null ? "0" : String(duration % 60));
+  const [next, setNext] = useState(nextCycle ?? "");
   const [busy, setBusy] = useState(false);
   async function save(e: React.FormEvent) {
     e.preventDefault();

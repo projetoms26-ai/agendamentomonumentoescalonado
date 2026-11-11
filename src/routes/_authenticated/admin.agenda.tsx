@@ -93,7 +93,7 @@ function Agenda() {
                     <p className="mt-3 text-xs font-medium text-muted-foreground">Gerenciar atividade (Concluiu, Faltou, Repetir e Passou são só do administrador; Passou avança o ciclo)</p>
                     <div className="mt-1.5"><QuickStatus id={b.id} value={b.status} /></div>
                     <CycleFix id={b.id} value={b.cycle} />
-                    <AttendanceRecord id={b.id} status={b.status} />
+                    <AttendanceRecord key={`${b.id}-${b.status}-${b.attendance_duration_seconds}-${b.attendance_next_cycle}`} id={b.id} status={b.status} duration={b.attendance_duration_seconds} nextCycle={b.attendance_next_cycle} />
                   </div>
                 ))}
               </div>
