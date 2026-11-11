@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
+import { AttendanceHistory } from "@/components/AttendanceHistory";
 import { BookingInformation, CycleGuidance } from "@/components/BookingInformation";
 import { customerRegistrationSchema } from "@/lib/customer-access";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
@@ -401,7 +402,10 @@ function BookingPage() {
         </div>
 
         {allowed && ["category", "format", "dates", "review", "done"].includes(step) && (
-          <MyBooking phone={form.whatsapp} onReschedule={() => { setDates([]); setStep("category"); }} />
+          <>
+            <MyBooking phone={form.whatsapp} onReschedule={() => { setDates([]); setStep("category"); }} />
+            <AttendanceHistory />
+          </>
         )}
       </main>
     </div>

@@ -18,3 +18,4 @@
 - Link customer accounts by auth_user_id through signup/confirmation triggers and authenticated identity RPCs; legacy records link only after verified, unique email matching — a phone number is not a credential.
 - Preserve account profile creation in an Auth lifecycle trigger; customer registration metadata creates pending records but never grants approval or roles.
 - WhatsApp approval links are manual sends after saved approval; do not report them as automatic delivery.
+- Attendance history is append-only trigger-generated snapshots, read through an identity-scoped RPC; durations are actual admin input and unknown legacy values stay null so past records are not invented or overwritten.

@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/admin/StatusSelect";
 import { FORMAT_LABEL, addDays, fmtDate, hhmm, maskPhone, todayISO } from "@/lib/booking";
 import { useDayBookings } from "@/lib/admin-queries";
+import { AttendanceRecord } from "@/components/admin/AttendanceRecord";
 
 export const Route = createFileRoute("/_authenticated/admin/agenda")({
   head: () => ({ meta: [
@@ -92,6 +93,7 @@ function Agenda() {
                     <p className="mt-3 text-xs font-medium text-muted-foreground">Gerenciar atividade (Concluiu, Faltou, Repetir e Passou são só do administrador; Passou avança o ciclo)</p>
                     <div className="mt-1.5"><QuickStatus id={b.id} value={b.status} /></div>
                     <CycleFix id={b.id} value={b.cycle} />
+                    <AttendanceRecord id={b.id} status={b.status} />
                   </div>
                 ))}
               </div>

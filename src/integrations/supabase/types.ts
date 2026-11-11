@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_history: {
+        Row: {
+          attendance_date: string
+          booking_id: string
+          customer_id: string | null
+          cycle: string | null
+          duration_seconds: number | null
+          id: string
+          next_cycle: string | null
+          owner_user_id: string | null
+          recorded_at: string
+          recorded_by: string | null
+          result: Database["public"]["Enums"]["booking_status"]
+          source: string
+        }
+        Insert: {
+          attendance_date: string
+          booking_id: string
+          customer_id?: string | null
+          cycle?: string | null
+          duration_seconds?: number | null
+          id?: string
+          next_cycle?: string | null
+          owner_user_id?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          result: Database["public"]["Enums"]["booking_status"]
+          source?: string
+        }
+        Update: {
+          attendance_date?: string
+          booking_id?: string
+          customer_id?: string | null
+          cycle?: string | null
+          duration_seconds?: number | null
+          id?: string
+          next_cycle?: string | null
+          owner_user_id?: string | null
+          recorded_at?: string
+          recorded_by?: string | null
+          result?: Database["public"]["Enums"]["booking_status"]
+          source?: string
+        }
+        Relationships: []
+      }
       blocked_dates: {
         Row: {
           created_at: string
@@ -34,6 +79,8 @@ export type Database = {
       }
       bookings: {
         Row: {
+          attendance_duration_seconds: number | null
+          attendance_next_cycle: string | null
           booking_date: string
           category: string | null
           code: string
@@ -56,6 +103,8 @@ export type Database = {
           whatsapp: string
         }
         Insert: {
+          attendance_duration_seconds?: number | null
+          attendance_next_cycle?: string | null
           booking_date: string
           category?: string | null
           code: string
@@ -78,6 +127,8 @@ export type Database = {
           whatsapp: string
         }
         Update: {
+          attendance_duration_seconds?: number | null
+          attendance_next_cycle?: string | null
           booking_date?: string
           category?: string | null
           code?: string
@@ -468,6 +519,29 @@ export type Database = {
         Returns: boolean
       }
       lookup_profile: { Args: { _whatsapp: string }; Returns: string }
+      my_attendance_history: {
+        Args: never
+        Returns: {
+          attendance_date: string
+          booking_id: string
+          customer_id: string | null
+          cycle: string | null
+          duration_seconds: number | null
+          id: string
+          next_cycle: string | null
+          owner_user_id: string | null
+          recorded_at: string
+          recorded_by: string | null
+          result: Database["public"]["Enums"]["booking_status"]
+          source: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "attendance_history"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       my_customer_status: {
         Args: never
         Returns: {

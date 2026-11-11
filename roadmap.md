@@ -1,3 +1,6 @@
+- [ ] Autorizar somente sousanaty09@gmail.com como administrador, mediante conta com e-mail verificado.
+- [ ] Exibir histórico privado de atendimentos com ciclo, resultado, próximo ciclo e duração, preservando registros anteriores.
+- [ ] Enviar convites administrativos por e-mail — aguarda domínio próprio; Gmail não substitui domínio de envio.
 - [x] Corrigir o erro que impede a abertura do painel — nove testes passaram e telas de acesso/cadastro abriram sem erro.
 - [ ] Verificar Cadastros com acesso administrativo real — aguarda login do administrador na prévia; não há conta vinculada ao solicitante para teste.
 - [x] Retomar cadastro e login com e-mail/senha, preservando ciclo, dependentes e aprovação.
