@@ -1,3 +1,5 @@
+- [x] Corrigir o erro que impede a abertura do painel — nove testes passaram e telas de acesso/cadastro abriram sem erro.
+- [ ] Verificar Cadastros com acesso administrativo real — aguarda login do administrador na prévia; não há conta vinculada ao solicitante para teste.
 - [x] Retomar cadastro e login com e-mail/senha, preservando ciclo, dependentes e aprovação.
 - [x] Preparar mensagem manual de aprovação pelo WhatsApp após confirmação salva.
 - [ ] Configurar aviso de aprovação por e-mail — aguarda domínio próprio configurado.
