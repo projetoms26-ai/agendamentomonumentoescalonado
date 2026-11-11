@@ -1,0 +1,11 @@
+[build]
+  command = "bun run build"
+  # On Netlify, Nitro uses its `netlify` preset: static assets go to `dist`
+  # and the SSR server goes to `.netlify/functions-internal`.
+  publish = "dist"
+
+[dev]
+  # Lovable's Vite config serves the dev app on port 8080.
+  command = "bun run dev"
+  targetPort = 8080
+  framework = "#custom"
