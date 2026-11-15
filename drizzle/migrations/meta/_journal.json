@@ -113,6 +113,13 @@
       "when": 1794401047767,
       "tag": "0015_private_attendance_history",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794750881453,
+      "tag": "0016_registration_email_exists",
+      "breakpoints": true
     }
   ]
 }

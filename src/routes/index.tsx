@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
 import { AttendanceHistory } from "@/components/AttendanceHistory";
 import { BookingInformation, CycleGuidance } from "@/components/BookingInformation";
-import { customerRegistrationSchema } from "@/lib/customer-access";
+import { customerRegistrationSchema, DUPLICATE_EMAIL_MESSAGE } from "@/lib/customer-access";
+import { signUpUniqueEmail } from "@/lib/customer-registration";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
 import {
   addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles, FORMAT_LABEL, manhaTardeOk,
@@ -96,7 +97,7 @@ function BookingPage() {
     try {
       await qc.cancelQueries(); qc.clear();
       await supabase.auth.signOut(); setSignedIn(false); setAllowed(null);
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await signUpUniqueEmail({
         email: r.data.email, password: r.data.password,
         options: { emailRedirectTo: window.location.origin, data: {
           registration_kind: "customer", full_name: r.data.name, whatsapp: r.data.whatsapp.replace(/\D/g, ""),
@@ -107,7 +108,11 @@ function BookingPage() {
       setConfirmationNeeded(!data.session); setSignedIn(!!data.session);
       setForm((f) => ({ ...f, password: "" }));
       setLoginEmail(r.data.email); setShowRegistrationGuide(true); setStep("pending");
-    } catch (error) { toast.error(error instanceof Error ? error.message : "Não foi possível enviar seu cadastro"); }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Não foi possível enviar seu cadastro";
+      if (message === DUPLICATE_EMAIL_MESSAGE) setErrors({ email: message });
+      toast.error(message);
+    }
     finally { setBusy(false); }
   }
 
@@ -264,7 +269,7 @@ function BookingPage() {
                   <Input className="h-12 text-base" inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: maskPhone(e.target.value) })} />
                 </Field>
                 <Field label="E-mail" error={errors["email"]}>
-                  <Input className="h-12 text-base" aria-label="E-mail" type="email" required autoComplete="email" maxLength={255} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                  <Input className="h-12 text-base" aria-label="E-mail" type="email" required autoComplete="email" maxLength={255} value={form.email} onChange={(e) => { setForm({ ...form, email: e.target.value }); setErrors((previous) => ({ ...previous, email: "" })); }} />
                 </Field>
                 <Field label="Crie sua senha" error={errors["password"]}><Input aria-label="Crie sua senha" className="h-12 text-base" type="password" autoComplete="new-password" required minLength={8} maxLength={128} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
                 <div className="space-y-2">

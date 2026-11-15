@@ -1,5 +1,30 @@
 import { z } from "zod";
 
+export const DUPLICATE_EMAIL_MESSAGE = "Esse e-mail já foi cadastrado no sistema";
+
+type SignupResult = {
+  data: { user: { identities?: unknown[] } | null; session: unknown | null };
+  error: { message: string; code?: string | undefined } | null;
+};
+
+export async function registerUniqueEmail<T extends SignupResult>(
+  email: string,
+  checkEmail: (normalizedEmail: string) => Promise<boolean>,
+  signup: (normalizedEmail: string) => Promise<T>,
+): Promise<T> {
+  const normalizedEmail = email.trim().toLowerCase();
+  if (await checkEmail(normalizedEmail)) throw new Error(DUPLICATE_EMAIL_MESSAGE);
+  const result = await signup(normalizedEmail);
+  if (result.error) {
+    if (result.error.code === "user_already_exists" || result.error.code === "email_exists" || /already registered|already exists/i.test(result.error.message)) {
+      throw new Error(DUPLICATE_EMAIL_MESSAGE);
+    }
+    throw new Error(result.error.message);
+  }
+  if (result.data.user?.identities?.length === 0) throw new Error(DUPLICATE_EMAIL_MESSAGE);
+  return result;
+}
+
 export const customerRegistrationSchema = z.object({
   name: z.string().trim().min(3, "Informe seu nome completo").max(120),
   whatsapp: z.string().refine((v) => /^\d{10,11}$/.test(v.replace(/\D/g, "")), "Celular inválido"),

@@ -19,3 +19,4 @@
 - Preserve account profile creation in an Auth lifecycle trigger; customer registration metadata creates pending records but never grants approval or roles.
 - WhatsApp approval links are manual sends after saved approval; do not report them as automatic delivery.
 - Attendance history is append-only trigger-generated snapshots, read through an identity-scoped RPC; durations are actual admin input and unknown legacy values stay null so past records are not invented or overwritten.
+- All email signup screens use a shared existence-check wrapper backed by a boolean-only security-definer RPC across Auth and customers, including pending accounts; this prevents misleading duplicate signup success without exposing customer details.

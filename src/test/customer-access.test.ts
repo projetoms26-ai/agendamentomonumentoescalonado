@@ -1,8 +1,26 @@
-import { describe, expect, it } from "vitest";
-import { approvalWhatsAppUrl, customerRegistrationSchema } from "@/lib/customer-access";
+import { describe, expect, it, vi } from "vitest";
+import { approvalWhatsAppUrl, customerRegistrationSchema, registerUniqueEmail } from "@/lib/customer-access";
 
 const registration = { name: "Pessoa Teste", whatsapp: "11987654321", email: "pessoa@example.com", password: "senha123" };
 describe("Cadastro com e-mail e senha", () => {
+  it.each(["pendente", "aprovado", "e-mail não confirmado"])("não envia novo cadastro para e-mail existente: %s", async () => {
+    const signup = vi.fn();
+    await expect(registerUniqueEmail(" Pessoa@Example.com ", async (email) => email === "pessoa@example.com", signup)).rejects.toThrow("Esse e-mail já foi cadastrado no sistema");
+    expect(signup).not.toHaveBeenCalled();
+  });
+  it("permite um e-mail ainda não cadastrado", async () => {
+    const signup = vi.fn(async () => ({ data: { user: { identities: [{}] }, session: null }, error: null }));
+    await registerUniqueEmail(" NOVO@Example.com ", async () => false, signup);
+    expect(signup).toHaveBeenCalledWith("novo@example.com");
+  });
+  it("não trata resposta disfarçada de duplicidade como cadastro enviado", async () => {
+    await expect(registerUniqueEmail(registration.email, async () => false, async () => ({ data: { user: { identities: [] }, session: null }, error: null }))).rejects.toThrow("Esse e-mail já foi cadastrado no sistema");
+  });
+  it("interrompe o envio se a verificação estiver indisponível", async () => {
+    const signup = vi.fn();
+    await expect(registerUniqueEmail(registration.email, async () => { throw new Error("indisponível"); }, signup)).rejects.toThrow("indisponível");
+    expect(signup).not.toHaveBeenCalled();
+  });
   it("exige e-mail válido", () => {
     expect(customerRegistrationSchema.safeParse({ ...registration, email: "" }).success).toBe(false);
     expect(customerRegistrationSchema.safeParse(registration).success).toBe(true);

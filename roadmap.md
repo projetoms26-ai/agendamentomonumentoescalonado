@@ -1,3 +1,4 @@
+- [x] Impedir novo cadastro com e-mail existente, inclusive pendente, e mostrar aviso claro — 12 testes passaram; e-mail existente bloqueado na tela sem enviar novo cadastro.
 - [ ] Autorizar somente sousanaty09@gmail.com como administrador, mediante conta com e-mail verificado.
 - [ ] Exibir histórico privado de atendimentos com ciclo, resultado, próximo ciclo e duração, preservando registros anteriores.
 - [ ] Enviar convites administrativos por e-mail — aguarda domínio próprio; Gmail não substitui domínio de envio.

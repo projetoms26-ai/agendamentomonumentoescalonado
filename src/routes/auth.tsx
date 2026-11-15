@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
+import { signUpUniqueEmail } from "@/lib/customer-registration";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -39,11 +40,13 @@ function AuthPage() {
       if (error) { toast.error("E-mail ou senha incorretos"); return; }
       nav({ to: "/admin" });
     } else {
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
-      setLoading(false);
-      if (error) { toast.error(error.message); return; }
-      if (data.session) nav({ to: "/admin" });
-      else toast.success("Conta criada. Confirme pelo link enviado ao seu e-mail.");
+      try {
+        const { data } = await signUpUniqueEmail({ email, password, options: { emailRedirectTo: window.location.origin } });
+        if (data.session) nav({ to: "/admin" });
+        else toast.success("Conta criada. Confirme pelo link enviado ao seu e-mail.");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Não foi possível criar sua conta");
+      } finally { setLoading(false); }
     }
   }
 
