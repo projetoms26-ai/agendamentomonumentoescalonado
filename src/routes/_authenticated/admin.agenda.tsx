@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-const CYCLE_OPTS = ["i1", "i2", "i3", "P1", "P2", "Aresta"];
+const CYCLE_OPTS = ["i1", "i2", "i3", "P1", "P2", "Aresta", "ABC"];
 function CycleFix({ id, value }: { id: string; value: string | null }) {
   const qc = useQueryClient();
   const [cycle, setCycle] = useState(value ?? "");

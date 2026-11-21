@@ -35,7 +35,7 @@ export const Route = createFileRoute("/")({
 const formSchema = customerRegistrationSchema;
 
 type Step = "home" | "login" | "pending" | "information" | "form" | "category" | "format" | "dates" | "review" | "done";
-type Category = "Iniciar" | "P1" | "P2" | "Aresta";
+type Category = "Iniciar" | "P1" | "P2" | "Aresta" | "ABC";
 
 function BookingPage() {
   const [step, setStep] = useState<Step>("home");
@@ -82,7 +82,7 @@ function BookingPage() {
     if (isIniciar) return !!format && (format === "duas_tardes" ? d.period === "tarde" : dayFitsFormat(d.period, format));
     return true;
   });
-  const leftOf = (d: NonNullable<typeof schedule.data>[number]) => (category === "Iniciar" ? d.iniciar_left : category === "P1" ? d.p1_left : category === "P2" ? d.p2_left : d.aresta_left);
+  const leftOf = (d: NonNullable<typeof schedule.data>[number]) => (category === "Iniciar" ? d.iniciar_left : category === "P1" ? d.p1_left : category === "P2" ? d.p2_left : category === "ABC" ? d.abc_left : d.aresta_left);
 
   async function submitForm() {
     const r = formSchema.safeParse(form);
@@ -275,7 +275,7 @@ function BookingPage() {
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Ciclo</Label>
                   <div className="grid grid-cols-2 gap-2" role="radiogroup">
-                    {(["Iniciar", "P1", "P2", "Aresta"] as Category[]).map((c) => <FormatCard key={c} active={regCycle === c} onClick={() => setRegCycle(c)} title={c === "Iniciar" ? "Iniciar (i1, i2, i3)" : c} desc="" />)}
+                    {(["Iniciar", "P1", "P2", "Aresta", "ABC"] as Category[]).map((c) => <FormatCard key={c} active={regCycle === c} onClick={() => setRegCycle(c)} title={c === "Iniciar" ? "Iniciar (i1, i2, i3)" : c} desc="" />)}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -320,6 +320,7 @@ function BookingPage() {
                 <FormatCard active={category === "P1"} onClick={() => setCategory("P1")} title="P1" desc="1 ciclo, em 1 data." />
                 <FormatCard active={category === "P2"} onClick={() => setCategory("P2")} title="P2" desc="1 ciclo, em 1 data." />
                 <FormatCard active={category === "Aresta"} onClick={() => setCategory("Aresta")} title="Aresta" desc="Escolha o dia." />
+                <FormatCard active={category === "ABC"} onClick={() => setCategory("ABC")} title="ABC" desc="1 ciclo, em 1 data." />
               </div>
               <Button size="lg" className="mt-6 w-full" onClick={() => { setDates([]); setFormat(null); setStep(category === "Iniciar" ? "format" : "dates"); }}>Continuar</Button>
             </section>

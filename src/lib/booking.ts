@@ -49,7 +49,7 @@ const LEGACY = [
   { value: "nao_compareceu" as Status, label: "Não compareceu", cls: "bg-destructive/10 text-destructive border-destructive/30" },
 ];
 export const statusInfo = (s: string) => [...STATUSES, ...LEGACY].find((x) => x.value === s) ?? STATUSES[0]!;
-export const CYCLES = ["i1", "i2", "i3", "P1", "P2", "Aresta"] as const;
+export const CYCLES = ["i1", "i2", "i3", "P1", "P2", "Aresta", "ABC"] as const;
 export const PERIODS: Record<string, string> = { integral: "Período integral", tarde: "Tarde" };
 
 /** Regra do Iniciar: 3 ciclos. Dia inteiro = 1 data integral (i1,i2,i3); Duas tardes = 2 datas com tarde (i1,i2 | i3). */
