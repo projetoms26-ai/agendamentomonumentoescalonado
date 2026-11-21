@@ -361,51 +361,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      book_approved: {
-        Args: {
-          _category: string
-          _dates: string[]
-          _format: string
-          _whatsapp: string
-        }
-        Returns: {
-          booking_date: string
-          code: string
-          cycle: string
-        }[]
-      }
-      book_cycles:
-        | {
-            Args: {
-              _category: string
-              _dates: string[]
-              _email: string
-              _format: string
-              _name: string
-              _whatsapp: string
-            }
-            Returns: {
-              booking_date: string
-              code: string
-              cycle: string
-            }[]
-          }
-        | {
-            Args: {
-              _category: string
-              _dates: string[]
-              _email: string
-              _format: string
-              _name: string
-              _party: number
-              _whatsapp: string
-            }
-            Returns: {
-              booking_date: string
-              code: string
-              cycle: string
-            }[]
-          }
       book_periods: {
         Args: {
           _category: string
@@ -435,38 +390,6 @@ export type Database = {
         }[]
       }
       claim_first_admin: { Args: never; Returns: boolean }
-      create_booking:
-        | {
-            Args: {
-              _date: string
-              _email: string
-              _name: string
-              _time: string
-              _whatsapp: string
-            }
-            Returns: {
-              booking_date: string
-              code: string
-              full_name: string
-              slot_time: string
-            }[]
-          }
-        | {
-            Args: {
-              _date: string
-              _email: string
-              _name: string
-              _time: string
-              _visit_type: string
-              _whatsapp: string
-            }
-            Returns: {
-              booking_date: string
-              code: string
-              full_name: string
-              slot_time: string
-            }[]
-          }
       customer_action: {
         Args: { _action: string; _code: string; _whatsapp: string }
         Returns: string

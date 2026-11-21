@@ -120,6 +120,13 @@
       "when": 1794750881453,
       "tag": "0016_registration_email_exists",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795289703747,
+      "tag": "0017_restrict_legacy_public_reads",
+      "breakpoints": true
     }
   ]
 }

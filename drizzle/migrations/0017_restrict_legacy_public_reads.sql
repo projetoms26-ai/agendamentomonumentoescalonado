@@ -1,0 +1,11 @@
+DROP POLICY IF EXISTS "public read blocked" ON public.blocked_dates;
+DROP POLICY IF EXISTS "public read slots" ON public.time_slots;
+DROP POLICY IF EXISTS "public read schedule" ON public.schedule_days;
+DROP POLICY IF EXISTS "public read settings" ON public.settings;
+REVOKE SELECT ON public.blocked_dates, public.time_slots, public.schedule_days, public.settings FROM anon;
+CREATE POLICY "signed in read settings" ON public.settings FOR SELECT TO authenticated USING (auth.uid() IS NOT NULL);
+DROP FUNCTION IF EXISTS public.book_cycles(text,text,text,text,text,date[]);
+DROP FUNCTION IF EXISTS public.book_cycles(text,text,text,text,text,date[],integer);
+DROP FUNCTION IF EXISTS public.create_booking(text,text,text,date,time);
+DROP FUNCTION IF EXISTS public.create_booking(text,text,text,date,time,text);
+DROP FUNCTION IF EXISTS public.book_approved(text,text,text,date[]);
