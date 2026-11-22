@@ -14,6 +14,7 @@
 - Public booking RPC book_periods requires a confirmed (admin-approved) registration, then delegates to book_periods_core for capacity checks — approval gates booking per user request.
 - Admin access requires an existing `admin` row in user_roles; claim_first_admin only checks that role — open customer signup must never bootstrap administrators.
 - Keep cycle guidance in BookingInformation shared before and after registration as presentation only; it must not change eligibility or booking validation.
+- Render the creator signature in the shared root footer so it stays consistent across the site.
 - Share the app logo through Brand and derive the browser favicon from the same image to keep identity consistent across pages.
 - Link customer accounts by auth_user_id through signup/confirmation triggers and authenticated identity RPCs; legacy records link only after verified, unique email matching — a phone number is not a credential.
 - Preserve account profile creation in an Auth lifecycle trigger; customer registration metadata creates pending records but never grants approval or roles.
