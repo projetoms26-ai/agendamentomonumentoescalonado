@@ -6,6 +6,7 @@ const cycleGuidance = [
   { title: "P1", description: "Segunda vez que faz o treinamento, após fazer o ciclo iniciante e não sair o ultra dourado na foto, repete 1 ciclo de 3 min." },
   { title: "P2", description: "Terceira vez ou mais que faz o treinamento, após fazer o ciclo P1 e não sair o ultra dourado na foto, repete 1 ciclo de 1 min. e 30 s." },
   { title: "Arestas", description: "Após ter saído o ultra dourado na foto em qualquer etapa." },
+  { title: "ABC", description: "Atividades referentes ao Grupo do ABC (pessoas que já passaram pela aresta)." },
 ];
 
 export function CycleGuidance() {
