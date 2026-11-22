@@ -132,15 +132,15 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <footer className="flex flex-col items-center gap-3 border-t bg-card px-4 py-6 text-center text-sm text-muted-foreground">
-        <div className="relative h-24 w-24 overflow-hidden" aria-hidden="true">
+      <footer className="flex items-center justify-center gap-2 border-t bg-card px-4 py-4 text-center text-xs text-muted-foreground">
+        <div className="relative size-7 shrink-0 overflow-hidden" aria-hidden="true">
           <img
             src={signatureAsset.url}
             alt=""
             width={531}
             height={470}
             loading="lazy"
-            className="absolute left-1/2 top-1/2 w-56 max-w-none -translate-x-1/2 -translate-y-1/2 opacity-50"
+            className="absolute left-1/2 top-1/2 w-16 max-w-none -translate-x-1/2 -translate-y-1/2 opacity-35"
           />
         </div>
         <p>Feito com muito amor, <span className="font-medium text-foreground">NatSousa</span></p>
