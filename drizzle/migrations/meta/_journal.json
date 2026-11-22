@@ -134,6 +134,13 @@
       "when": 1795290213485,
       "tag": "0018_add_abc_cycle",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1795346704286,
+      "tag": "0019_admin_contact_access",
+      "breakpoints": true
     }
   ]
 }

@@ -364,6 +364,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_admin_contact: { Args: { _email: string }; Returns: string }
       book_periods: {
         Args: {
           _category: string
@@ -444,6 +445,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_admin_contacts: {
+        Args: never
+        Returns: {
+          display_name: string
+          email: string
+          user_id: string
+        }[]
       }
       lookup_profile: { Args: { _whatsapp: string }; Returns: string }
       my_attendance_history: {
