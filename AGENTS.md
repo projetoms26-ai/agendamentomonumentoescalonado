@@ -22,3 +22,4 @@
 - Attendance history is append-only trigger-generated snapshots, read through an identity-scoped RPC; durations are actual admin input and unknown legacy values stay null so past records are not invented or overwritten.
 - All email signup screens use a shared existence-check wrapper backed by a boolean-only security-definer RPC across Auth and customers, including pending accounts; this prevents misleading duplicate signup success without exposing customer details.
 - Grant and list administrator contacts only through admin-checked RPCs; grants require a verified existing Auth account, preventing public signup from granting privileges.
+- Customer signup checks phone existence through a boolean-only RPC before Auth signup; keep the lifecycle trigger as the authoritative duplicate guard and never overwrite an existing customer.

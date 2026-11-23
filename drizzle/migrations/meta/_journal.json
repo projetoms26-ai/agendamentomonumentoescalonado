@@ -141,6 +141,13 @@
       "when": 1795346704286,
       "tag": "0019_admin_contact_access",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795449462645,
+      "tag": "0020_registration_phone_exists",
+      "breakpoints": true
     }
   ]
 }

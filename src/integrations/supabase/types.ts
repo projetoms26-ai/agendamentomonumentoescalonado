@@ -509,6 +509,10 @@ export type Database = {
             Returns: string
           }
       registration_email_exists: { Args: { _email: string }; Returns: boolean }
+      registration_phone_exists: {
+        Args: { _whatsapp: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin"

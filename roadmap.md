@@ -1,4 +1,5 @@
 - [x] Adicionar no painel a opção de liberar um contato como administrador pelo e-mail de uma conta verificada — seis testes passaram; painel real confirmou lista, contato já administrador e recusa de conta inexistente, sem alterar permissões de terceiros.
+- [ ] Corrigir o aviso de celular já cadastrado antes do envio, preservando o cadastro existente e verificando a tela real.
 - [x] Impedir novo cadastro com e-mail existente, inclusive pendente, e mostrar aviso claro — 12 testes passaram; e-mail existente bloqueado na tela sem enviar novo cadastro.
 - [ ] Autorizar somente sousanaty09@gmail.com como administrador, mediante conta com e-mail verificado.
 - [ ] Exibir histórico privado de atendimentos com ciclo, resultado, próximo ciclo e duração, preservando registros anteriores.

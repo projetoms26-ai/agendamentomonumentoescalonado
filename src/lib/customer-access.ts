@@ -1,6 +1,22 @@
 import { z } from "zod";
 
 export const DUPLICATE_EMAIL_MESSAGE = "Esse e-mail já foi cadastrado no sistema";
+export const DUPLICATE_PHONE_MESSAGE = "Este celular já possui cadastro. Use o acesso existente ou procure a equipe.";
+
+export async function registerUniquePhone<T>(phone: string, checkPhone: (phone: string) => Promise<boolean>, signup: () => Promise<T>): Promise<T> {
+  const normalized = phone.replace(/\D/g, "");
+  if (!/^\d{10,11}$/.test(normalized)) throw new Error("Celular inválido");
+  if (await checkPhone(normalized)) throw new Error(DUPLICATE_PHONE_MESSAGE);
+  try {
+    return await signup();
+  } catch (error) {
+    if (error instanceof Error && /Database error saving new user/i.test(error.message)) {
+      if (await checkPhone(normalized)) throw new Error(DUPLICATE_PHONE_MESSAGE);
+      throw new Error("Não foi possível criar seu cadastro. Confira os dados ou procure a equipe.");
+    }
+    throw error;
+  }
+}
 
 type SignupResult = {
   data: { user: { identities?: unknown[] } | null; session: unknown | null };

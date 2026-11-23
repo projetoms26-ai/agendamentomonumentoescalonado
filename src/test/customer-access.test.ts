@@ -1,8 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
-import { approvalWhatsAppUrl, customerRegistrationSchema, registerUniqueEmail } from "@/lib/customer-access";
+import { approvalWhatsAppUrl, customerRegistrationSchema, registerUniqueEmail, registerUniquePhone } from "@/lib/customer-access";
 
 const registration = { name: "Pessoa Teste", whatsapp: "11987654321", email: "pessoa@example.com", password: "senha123" };
 describe("Cadastro com e-mail e senha", () => {
+  it("bloqueia celular existente antes de enviar um novo cadastro", async () => {
+    const signup = vi.fn();
+    const check = vi.fn(async (phone) => phone === "11987654321");
+    await expect(registerUniquePhone("(11) 98765-4321", check, signup)).rejects.toThrow("Este celular já possui cadastro");
+    expect(check).toHaveBeenCalledWith("11987654321");
+    expect(signup).not.toHaveBeenCalled();
+  });
+  it("envia cadastro com celular novo", async () => {
+    const signup = vi.fn(async () => "enviado");
+    expect(await registerUniquePhone("11987654321", async () => false, signup)).toBe("enviado");
+    expect(signup).toHaveBeenCalledOnce();
+  });
+  it("interrompe o cadastro quando não pode verificar o celular", async () => {
+    const signup = vi.fn();
+    await expect(registerUniquePhone("11987654321", async () => { throw new Error("indisponível"); }, signup)).rejects.toThrow("indisponível");
+    expect(signup).not.toHaveBeenCalled();
+  });
+  it("identifica celular repetido em envio simultâneo", async () => {
+    const check = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    await expect(registerUniquePhone("11987654321", check, async () => { throw new Error("Database error saving new user"); })).rejects.toThrow("Este celular já possui cadastro");
+  });
   it.each(["pendente", "aprovado", "e-mail não confirmado"])("não envia novo cadastro para e-mail existente: %s", async () => {
     const signup = vi.fn();
     await expect(registerUniqueEmail(" Pessoa@Example.com ", async (email) => email === "pessoa@example.com", signup)).rejects.toThrow("Esse e-mail já foi cadastrado no sistema");

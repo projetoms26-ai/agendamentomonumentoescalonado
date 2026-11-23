@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/Brand";
 import { AttendanceHistory } from "@/components/AttendanceHistory";
 import { BookingInformation, CycleGuidance } from "@/components/BookingInformation";
-import { customerRegistrationSchema, DUPLICATE_EMAIL_MESSAGE } from "@/lib/customer-access";
+import { customerRegistrationSchema, DUPLICATE_EMAIL_MESSAGE, DUPLICATE_PHONE_MESSAGE } from "@/lib/customer-access";
 import { signUpUniqueEmail } from "@/lib/customer-registration";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
 import {
@@ -111,6 +111,7 @@ function BookingPage() {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Não foi possível enviar seu cadastro";
       if (message === DUPLICATE_EMAIL_MESSAGE) setErrors({ email: message });
+      if (message === DUPLICATE_PHONE_MESSAGE) setErrors({ whatsapp: message });
       toast.error(message);
     }
     finally { setBusy(false); }
