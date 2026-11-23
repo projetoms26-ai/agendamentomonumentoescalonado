@@ -111,7 +111,13 @@ function BookingPage() {
       setForm((f) => ({ ...f, password: "" }));
       setLoginEmail(r.data.email); setShowRegistrationGuide(true); setStep("pending"); setRegistrationNoticeOpen(true);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Não foi possível enviar seu cadastro";
+      const raw = error instanceof Error ? error.message : "Não foi possível enviar seu cadastro";
+      const message = /weak|easy to guess|pwned/i.test(raw) ? "Essa senha é muito fácil de adivinhar. Crie uma senha mais forte, misturando letras, números e símbolos."
+        : /not allowed|cannot receive email|invalid.*email/i.test(raw) ? "Esse e-mail não é válido. Confira se foi digitado corretamente."
+        : /rate limit|too many/i.test(raw) ? "Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente."
+        : raw;
+      if (message.startsWith("Essa senha")) setErrors({ password: message });
+      if (message.startsWith("Esse e-mail não")) setErrors({ email: message });
       if (message === DUPLICATE_EMAIL_MESSAGE) setErrors({ email: message });
       if (message === DUPLICATE_PHONE_MESSAGE) setErrors({ whatsapp: message });
       toast.error(message);
