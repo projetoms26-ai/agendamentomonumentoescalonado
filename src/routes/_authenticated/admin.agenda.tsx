@@ -34,7 +34,9 @@ import { ChevronLeft, ChevronRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickStatus } from "@/components/admin/StatusSelect";
 import { FORMAT_LABEL, addDays, fmtDate, hhmm, maskPhone, todayISO } from "@/lib/booking";
-import { useDayBookings } from "@/lib/admin-queries";
+import { useCustomerApprovals, useDayBookings } from "@/lib/admin-queries";
+import { approvalStateFor, emptyApprovalIndex } from "@/lib/customer-approval";
+import { ApprovalBadge } from "@/components/admin/ApprovalBadge";
 import { AttendanceRecord } from "@/components/admin/AttendanceRecord";
 
 export const Route = createFileRoute("/_authenticated/admin/agenda")({
@@ -53,6 +55,8 @@ export const Route = createFileRoute("/_authenticated/admin/agenda")({
 function Agenda() {
   const [date, setDate] = useState(todayISO());
   const { data, isLoading } = useDayBookings(date);
+  const approvals = useCustomerApprovals();
+  const approvalIndex = approvals.data ?? emptyApprovalIndex;
   const groups = new Map<string, NonNullable<typeof data>>();
   (data ?? []).forEach((b) => groups.set(b.slot_time, [...(groups.get(b.slot_time) ?? []), b]));
 
@@ -80,6 +84,7 @@ function Agenda() {
                       <div className="text-lg font-semibold">{b.full_name}</div>
                       <span className="font-mono text-sm text-muted-foreground">{b.code}</span>
                     </div>
+                    <div className="mt-1"><ApprovalBadge state={approvalStateFor(b, approvalIndex)} /></div>
                     {(b.category || b.cycle) && (
                       <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
                         {b.category && <span className="rounded-full border bg-muted px-2 py-0.5 font-medium">{b.category === "iniciar" ? "Iniciar" : b.category}</span>}

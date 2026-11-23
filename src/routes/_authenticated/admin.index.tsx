@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusSelect } from "@/components/admin/StatusSelect";
 import { AdminContacts } from "@/components/admin/AdminContacts";
-import { useDayBookings } from "@/lib/admin-queries";
+import { useCustomerApprovals, useDayBookings } from "@/lib/admin-queries";
+import { approvalStateFor, emptyApprovalIndex } from "@/lib/customer-approval";
+import { ApprovalBadge } from "@/components/admin/ApprovalBadge";
 import { fmtDate, fmtLong, hhmm, maskPhone, todayISO } from "@/lib/booking";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -28,6 +30,8 @@ function Dashboard() {
   const [slot, setSlot] = useState("all");
   const [q, setQ] = useState("");
   const bookings = useDayBookings(date);
+  const approvals = useCustomerApprovals();
+  const approvalIndex = approvals.data ?? emptyApprovalIndex;
   const settings = useQuery({ queryKey: ["settings"], queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data });
 
   const list = bookings.data ?? [];
@@ -90,6 +94,7 @@ function Dashboard() {
                     <a className="hover:underline" href={`https://wa.me/55${b.whatsapp}`} target="_blank" rel="noreferrer">{maskPhone(b.whatsapp)}</a>
                     {b.email && <> · {b.email}</>} · <span className="font-mono">{b.code}</span>
                   </div>
+                  <div className="mt-1"><ApprovalBadge state={approvalStateFor(b, approvalIndex)} /></div>
                 </div>
                 <StatusSelect id={b.id} value={b.status} />
               </div>
