@@ -1,3 +1,4 @@
+- [x] Preparar instalação PWA com manifesto e ícones da logo, sem alterar banco ou integrações — 31 testes passaram; manifesto, ícones e cadastro verificados em celular e computador, sem erros; instalação no aparelho depende da publicação.
 - [x] Adicionar no painel a opção de liberar um contato como administrador pelo e-mail de uma conta verificada — seis testes passaram; painel real confirmou lista, contato já administrador e recusa de conta inexistente, sem alterar permissões de terceiros.
 - [x] Corrigir o aviso de celular já cadastrado antes do envio — bloqueio verificado com celular real, sem enviar cadastro nem alterar dados; testes passaram.
 - [x] Mostrar “Cadastro enviado!” em uma janela, mantendo aprovação e confirmação de e-mail — apresentação e botão Entendi verificados no celular e computador com envio simulado, sem criar conta.

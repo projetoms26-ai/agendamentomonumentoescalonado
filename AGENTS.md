@@ -23,3 +23,4 @@
 - All email signup screens use a shared existence-check wrapper backed by a boolean-only security-definer RPC across Auth and customers, including pending accounts; this prevents misleading duplicate signup success without exposing customer details.
 - Grant and list administrator contacts only through admin-checked RPCs; grants require a verified existing Auth account, preventing public signup from granting privileges.
 - Customer signup checks phone existence through a boolean-only RPC before Auth signup; keep the lifecycle trigger as the authoritative duplicate guard and never overwrite an existing customer.
+- Home-screen installation uses a manifest and logo-derived icons only; do not add app-shell service workers or offline caches without an explicit offline request, so live availability, authentication and integrations remain unchanged.
