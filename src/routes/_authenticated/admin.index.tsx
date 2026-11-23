@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusSelect } from "@/components/admin/StatusSelect";
+import { AdminContacts } from "@/components/admin/AdminContacts";
 import { useDayBookings } from "@/lib/admin-queries";
 import { fmtDate, fmtLong, hhmm, maskPhone, todayISO } from "@/lib/booking";
 
@@ -96,6 +97,7 @@ function Dashboard() {
           </div>
         )}
       </div>
+      <AdminContacts />
     </div>
   );
 }

@@ -21,4 +21,9 @@ describe("Adicionar contato como administrador", () => {
   it("não aceita respostas desconhecidas como sucesso", async () => {
     await expect(grantAdminContact("contato@example.com", async () => "pending")).rejects.toThrow();
   });
+  it("não libera uma conta com e-mail não verificado", async () => {
+    await expect(grantAdminContact("contato@example.com", async () => {
+      throw new Error("O contato precisa ter uma conta cadastrada e confirmar o e-mail antes de receber acesso administrativo.");
+    })).rejects.toThrow("confirmar o e-mail");
+  });
 });
