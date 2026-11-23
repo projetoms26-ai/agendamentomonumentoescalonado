@@ -432,7 +432,7 @@ function BookingPage() {
               Aguarde a aprovação do seu cadastro. Depois de aprovado, faça login com o e-mail e a senha que você criou no cadastro para agendar.
             </DialogDescription>
           </DialogHeader>
-          {confirmationNeeded && <p className="text-sm leading-relaxed text-muted-foreground">Confirme também seu e-mail pelo link enviado. A confirmação do e-mail não substitui a aprovação do cadastro.</p>}
+          {<p className="text-sm leading-relaxed text-muted-foreground">Confirme também seu e-mail pelo link enviado. A confirmação do e-mail não substitui a aprovação do cadastro.</p>}
           <DialogFooter><Button className="h-11 w-full sm:w-auto" onClick={() => setRegistrationNoticeOpen(false)}><Check />Entendi</Button></DialogFooter>
         </DialogContent>
       </Dialog>
