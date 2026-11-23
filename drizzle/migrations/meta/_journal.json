@@ -162,6 +162,13 @@
       "when": 1795456334450,
       "tag": "0022_allow_abc_in_signup",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795456367373,
+      "tag": "0023_accept_abc_everywhere",
+      "breakpoints": true
     }
   ]
 }
