@@ -24,3 +24,4 @@
 - Grant and list administrator contacts only through admin-checked RPCs; grants require a verified existing Auth account, preventing public signup from granting privileges.
 - Customer signup checks phone existence through a boolean-only RPC before Auth signup; keep the lifecycle trigger as the authoritative duplicate guard and never overwrite an existing customer.
 - Home-screen installation uses a manifest and logo-derived icons only; do not add app-shell service workers or offline caches without an explicit offline request, so live availability, authentication and integrations remain unchanged.
+- Approval AI drafts use an authenticated, server-admin-checked function that rereads saved approved customers, sends only names and cycles to the SDK, and returns editable drafts without changing registrations or sending messages — preserves approval authority and manual delivery.

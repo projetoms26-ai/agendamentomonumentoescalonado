@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Phone, Trash2, MessageCircle } from "lucide-react";
+import { Check, Phone, Trash2, MessageCircle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CYCLES, fmtDate, maskPhone } from "@/lib/booking";
 import { approvalWhatsAppUrl } from "@/lib/customer-access";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ApprovalMessages } from "@/components/admin/ApprovalMessages";
 
 export const Route = createFileRoute("/_authenticated/admin/cadastros")({
   head: () => ({ meta: [
@@ -26,6 +28,8 @@ function Cadastros() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [onlyPending, setOnlyPending] = useState(true);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [messagesOpen, setMessagesOpen] = useState(false);
   const list = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
@@ -53,6 +57,8 @@ function Cadastros() {
 
   const term = q.trim().toLowerCase();
   const rows = (list.data ?? []).filter((c) => (!onlyPending || !c.confirmed) && (!term || c.full_name.toLowerCase().includes(term) || c.whatsapp.includes(term.replace(/\D/g, "") || "§")));
+  const selectedCustomers = (list.data ?? []).filter((c) => c.confirmed && selected.includes(c.id));
+  const approvedVisible = rows.filter((c) => c.confirmed);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -63,13 +69,22 @@ function Cadastros() {
         <Button variant={onlyPending ? "default" : "outline"} onClick={() => setOnlyPending(true)}>A confirmar</Button>
         <Button variant={!onlyPending ? "default" : "outline"} onClick={() => setOnlyPending(false)}>Todos</Button>
       </div>
+      {!onlyPending && <div className="mt-4 flex flex-wrap items-center gap-3 border-y py-3">
+        <label className="flex items-center gap-2 text-sm"><Checkbox aria-label="Selecionar cadastros aprovados visíveis" disabled={!approvedVisible.length || messagesOpen} checked={approvedVisible.length > 0 && approvedVisible.slice(0, 20).every((c) => selected.includes(c.id)) ? true : approvedVisible.some((c) => selected.includes(c.id)) ? "indeterminate" : false} onCheckedChange={(checked) => setSelected(checked ? approvedVisible.slice(0, 20).map((c) => c.id) : [])} />Selecionar aprovados</label>
+        <span className="text-sm text-muted-foreground">{selectedCustomers.length}/20 selecionados</span>
+        <Button size="sm" variant="outline" disabled={!selectedCustomers.length} onClick={() => setMessagesOpen(true)}><Sparkles /> Mensagens com IA</Button>
+      </div>}
       {list.isLoading ? <p className="mt-6 text-muted-foreground">Carregando…</p> : list.isError ? <p role="alert" className="mt-6 text-destructive">Não foi possível carregar os cadastros.</p> : !rows.length ? (
         <p className="mt-6 rounded-xl border bg-card p-6 text-muted-foreground">{onlyPending ? "Nenhum cadastro aguardando confirmação." : "Nenhum cadastro encontrado."}</p>
       ) : (
         <div className="mt-6 space-y-2">
-          {rows.map((c) => <Row key={c.id} c={c} busy={save.isPending || del.isPending} onSave={(cycle, confirmed) => save.mutate({ id: c.id, cycle, confirmed })} onRemoveDep={(i) => save.mutate({ id: c.id, cycle: c.cycle, confirmed: c.confirmed, dependents: c.dependents.filter((_, j) => j !== i) })} onDelete={() => del.mutate(c.id)} />)}
+          {rows.map((c) => <div key={c.id} className="relative">
+            {!onlyPending && c.confirmed && <label className="mb-2 flex items-center gap-2 text-sm"><Checkbox aria-label={`Selecionar ${c.full_name}`} checked={selected.includes(c.id)} disabled={messagesOpen || (!selected.includes(c.id) && selectedCustomers.length >= 20)} onCheckedChange={(checked) => setSelected((old) => checked ? [...old.filter((id) => id !== c.id), c.id] : old.filter((id) => id !== c.id))} />Selecionar para mensagem</label>}
+            <Row c={c} busy={save.isPending || del.isPending} onSave={(cycle, confirmed) => save.mutate({ id: c.id, cycle, confirmed })} onRemoveDep={(i) => save.mutate({ id: c.id, cycle: c.cycle, confirmed: c.confirmed, dependents: c.dependents.filter((_, j) => j !== i) })} onDelete={() => del.mutate(c.id)} />
+          </div>)}
         </div>
       )}
+      {messagesOpen && <ApprovalMessages customers={selectedCustomers} open={messagesOpen} onOpenChange={setMessagesOpen} />}
     </div>
   );
 }
