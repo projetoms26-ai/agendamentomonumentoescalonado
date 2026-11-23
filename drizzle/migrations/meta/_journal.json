@@ -148,6 +148,13 @@
       "when": 1795449462645,
       "tag": "0020_registration_phone_exists",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795451509679,
+      "tag": "0021_restrict_settings_reads",
+      "breakpoints": true
     }
   ]
 }

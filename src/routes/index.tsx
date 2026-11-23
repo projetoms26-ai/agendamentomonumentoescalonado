@@ -63,7 +63,7 @@ function BookingPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<{ code: string; booking_date: string; cycle: string }[]>([]);
 
-  const settings = useQuery({ queryKey: ["settings"], queryFn: async () => (await supabase.from("settings").select("*").eq("id", 1).single()).data });
+  const settings = useQuery({ queryKey: ["settings"], queryFn: async () => ({ payment_note: (await supabase.rpc("get_payment_note")).data ?? "" }) });
   const schedule = useQuery({
     queryKey: ["schedule"],
     queryFn: async () => {

@@ -425,6 +425,7 @@ export type Database = {
           slot_time: string
         }[]
       }
+      get_payment_note: { Args: never; Returns: string }
       get_schedule: {
         Args: { _from: string; _to: string }
         Returns: {
