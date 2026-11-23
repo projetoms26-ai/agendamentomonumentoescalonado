@@ -13,7 +13,8 @@ export function signUpUniqueEmail(input: Parameters<typeof supabase.auth.signUp>
       return result;
     };
     const metadata = input.options?.data;
-    if (metadata?.['registration_kind'] !== 'customer') return signup();
+    if (!metadata || !('registration_kind' in metadata) || metadata['registration_kind'] !== 'customer') return signup();
+    if (!('whatsapp' in metadata)) throw new Error("Celular inválido");
     const phone = metadata['whatsapp'];
     if (typeof phone !== 'string') throw new Error("Celular inválido");
     return registerUniquePhone(phone, async (normalized) => {

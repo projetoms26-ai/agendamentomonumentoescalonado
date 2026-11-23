@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Brand } from "@/components/Brand";
 import { AttendanceHistory } from "@/components/AttendanceHistory";
 import { BookingInformation, CycleGuidance } from "@/components/BookingInformation";
@@ -43,6 +44,7 @@ function BookingPage() {
   const [form, setForm] = useState({ name: "", whatsapp: "", email: "", password: "" });
   const [signedIn, setSignedIn] = useState(false);
   const [confirmationNeeded, setConfirmationNeeded] = useState(false);
+  const [registrationNoticeOpen, setRegistrationNoticeOpen] = useState(false);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user)); }, []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [regCycle, setRegCycle] = useState<Category>("Iniciar");
@@ -107,7 +109,7 @@ function BookingPage() {
       if (error) throw error;
       setConfirmationNeeded(!data.session); setSignedIn(!!data.session);
       setForm((f) => ({ ...f, password: "" }));
-      setLoginEmail(r.data.email); setShowRegistrationGuide(true); setStep("pending");
+      setLoginEmail(r.data.email); setShowRegistrationGuide(true); setStep("pending"); setRegistrationNoticeOpen(true);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Não foi possível enviar seu cadastro";
       if (message === DUPLICATE_EMAIL_MESSAGE) setErrors({ email: message });
@@ -415,6 +417,19 @@ function BookingPage() {
           </>
         )}
       </main>
+      <Dialog open={registrationNoticeOpen} onOpenChange={setRegistrationNoticeOpen}>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto rounded-lg sm:max-w-md">
+          <DialogHeader className="gap-3">
+            <CheckCircle2 className="size-10 text-success" aria-hidden="true" />
+            <DialogTitle className="pr-6 text-2xl leading-tight">Cadastro enviado!</DialogTitle>
+            <DialogDescription className="text-base leading-relaxed">
+              Aguarde a aprovação do seu cadastro. Depois de aprovado, faça login com o e-mail e a senha que você criou no cadastro para agendar.
+            </DialogDescription>
+          </DialogHeader>
+          {confirmationNeeded && <p className="text-sm leading-relaxed text-muted-foreground">Confirme também seu e-mail pelo link enviado. A confirmação do e-mail não substitui a aprovação do cadastro.</p>}
+          <DialogFooter><Button className="h-11 w-full sm:w-auto" onClick={() => setRegistrationNoticeOpen(false)}><Check />Entendi</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
