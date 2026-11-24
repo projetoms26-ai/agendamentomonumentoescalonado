@@ -14,6 +14,7 @@ import { BookingInformation, CycleGuidance } from "@/components/BookingInformati
 import { customerRegistrationSchema, DUPLICATE_EMAIL_MESSAGE, DUPLICATE_PHONE_MESSAGE } from "@/lib/customer-access";
 import { signUpUniqueEmail } from "@/lib/customer-registration";
 import { canAddScheduleChoice, scheduleKey, type ScheduleChoice } from "@/lib/schedule-selection";
+import { cycleOptionsFor } from "@/lib/cycle-lock";
 import {
   addDays, dayFitsFormat, dayNum, fmtDate, fmtLong, hhmm, maskPhone, monthShort, PERIODS, planCycles, FORMAT_LABEL, manhaTardeOk,
   requiredDates, todayISO, weekdayShort, type IniciarFormat,
@@ -324,12 +325,12 @@ function BookingPage() {
           {step === "category" && (
             <section>
               <h2 className="text-xl font-semibold">2. Qual ciclo você vai agendar?</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Seu ciclo foi definido no cadastro e já vem marcado.</p>
               <div className="mt-5 grid grid-cols-2 gap-3" role="radiogroup">
-                <FormatCard active={category === "Iniciar"} onClick={() => setCategory("Iniciar")} title="Iniciar (i1, i2, i3)" desc="Para iniciantes: 3 ciclos." />
-                <FormatCard active={category === "P1"} onClick={() => setCategory("P1")} title="P1" desc="1 ciclo, em 1 data." />
-                <FormatCard active={category === "P2"} onClick={() => setCategory("P2")} title="P2" desc="1 ciclo, em 1 data." />
-                <FormatCard active={category === "Aresta"} onClick={() => setCategory("Aresta")} title="Aresta" desc="Escolha o dia." />
-                <FormatCard active={category === "ABC"} onClick={() => setCategory("ABC")} title="ABC" desc="1 ciclo, em 1 data." />
+                {(allowed ? cycleOptionsFor(allowed) : []).map((option) => (
+                  <FormatCard key={option.value} active={category === option.value} locked={option.selectable} disabled={!option.selectable}
+                    onClick={() => { if (option.selectable) setCategory(option.value); }} title={option.title} desc={option.desc} />
+                ))}
               </div>
               <Button size="lg" className="mt-6 w-full" onClick={() => { setDates([]); setFormat(null); setStep(category === "Iniciar" ? "format" : "dates"); }}>Continuar</Button>
             </section>
@@ -470,12 +471,12 @@ function MyBooking({ phone, onReschedule }: { phone: string; onReschedule: () =>
   );
 }
 
-function FormatCard({ active, onClick, icon, title, desc }: { active: boolean; onClick: () => void; icon?: React.ReactNode; title: string; desc: string }) {
+function FormatCard({ active, onClick, icon, title, desc, disabled, locked }: { active: boolean; onClick: () => void; icon?: React.ReactNode; title: string; desc: string; disabled?: boolean; locked?: boolean }) {
   return (
-    <button type="button" role="radio" aria-checked={active} onClick={onClick}
-      className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition ${active ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"}`}>
+    <button type="button" role="radio" aria-checked={active} onClick={onClick} disabled={disabled}
+      className={`flex items-start gap-3 rounded-xl border-2 p-4 text-left transition ${disabled ? "cursor-not-allowed opacity-40" : active && locked ? "border-success bg-success/15" : active ? "border-primary bg-primary/10" : "bg-background hover:border-primary/50"}`}>
       {icon && <span className="text-primary">{icon}</span>}
-      <span><span className="block font-semibold">{title}</span><span className="text-sm text-muted-foreground">{desc}</span></span>
+      <span className="flex-1"><span className="flex items-center gap-1.5 font-semibold">{title}{locked && active && <Check className="size-4 text-success" />}</span><span className="text-sm text-muted-foreground">{desc}</span></span>
     </button>
   );
 }
